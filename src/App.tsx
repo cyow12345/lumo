@@ -336,7 +336,7 @@ function App() {
       case 'thinking':
         return <ThinkingOfYou userId={session.user.id} />;
       case 'coach':
-        return <LumoCoach userId={session.user.id} />;
+        return <LumoCoach userId={session.user.id} partnerLinked={partnerLinked} partnerName={partnerName || undefined} />;
       case 'trends':
         return <MoodTrends user={session.user} />;
       case 'achievements':

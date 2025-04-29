@@ -18,7 +18,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
   const [userName, setUserName] = useState<string>('');
   const [partnerLinked, setPartnerLinked] = useState<boolean>(false);
   const [inviteCode, setInviteCode] = useState<string>('');
-  const [partnerName, setPartnerName] = useState<string>('');
+  const [partnerName, setPartnerName] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState<boolean>(false);
   const [showPartnerLinkedInfo, setShowPartnerLinkedInfo] = useState(false);
 
@@ -44,40 +44,41 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
   // Lade Benutzerdaten und Partnerverknüpfung
   const [userData, setUserData] = useState<any>(null);
   const [partnerData, setPartnerData] = useState<any>(null);
+  const [partnerId, setPartnerId] = useState<string | null>(null);
   const loadUserData = async () => {
     if (!userId) return;
     try {
       const { data: userDataRaw, error: userError } = await supabase
         .from('user_profiles')
-        .select('name, invite_code, partner_id, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence, birth_date, birth_time, birth_place, relationship_start_date, relationship_status, email, astrology')
+        .select('name, invite_code, partner_id, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence, birth_date, birth_time, birth_place, relationship_start_date, relationship_status, astrology')
         .eq('id', userId)
         .single();
       if (userError) throw userError;
-      if (userDataRaw) {
+      if (userDataRaw && typeof userDataRaw === 'object' && 'name' in userDataRaw) {
         setUserData(userDataRaw);
-        setUserName(userDataRaw.name || 'Benutzer');
-        setInviteCode(userDataRaw.invite_code || '');
-        setPartnerLinked(!!userDataRaw.partner_id);
+        setUserName('name' in userDataRaw ? userDataRaw.name : 'Benutzer');
+        setInviteCode('invite_code' in userDataRaw ? userDataRaw.invite_code : '');
+        setPartnerLinked('partner_id' in userDataRaw && !!userDataRaw.partner_id);
         setUserAstroData({
-          birthDate: userDataRaw.birth_date,
-          birthTime: userDataRaw.birth_time,
-          birthPlace: userDataRaw.birth_place,
+          birthDate: 'birth_date' in userDataRaw ? userDataRaw.birth_date : undefined,
+          birthTime: 'birth_time' in userDataRaw ? userDataRaw.birth_time : undefined,
+          birthPlace: 'birth_place' in userDataRaw ? userDataRaw.birth_place : undefined,
         });
-        setRelationshipStartDate(userDataRaw.relationship_start_date || null);
+        setRelationshipStartDate('relationship_start_date' in userDataRaw ? userDataRaw.relationship_start_date : null);
         setPartnerName('');
-        if (userDataRaw.partner_id) {
+        if ('partner_id' in userDataRaw && userDataRaw.partner_id) {
           const { data: partnerDataRaw, error: partnerError } = await supabase
             .from('user_profiles')
             .select('id, name, partner_id, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence, birth_date, birth_time, birth_place, astrology')
             .eq('id', userDataRaw.partner_id)
             .single();
-          if (!partnerError && partnerDataRaw) {
+          if (!partnerError && partnerDataRaw && typeof partnerDataRaw === 'object' && 'name' in partnerDataRaw) {
             setPartnerData(partnerDataRaw);
-            setPartnerName(partnerDataRaw.name || '');
+            setPartnerName('name' in partnerDataRaw ? partnerDataRaw.name : '');
             setPartnerAstroData({
-              birthDate: partnerDataRaw.birth_date,
-              birthTime: partnerDataRaw.birth_time,
-              birthPlace: partnerDataRaw.birth_place,
+              birthDate: 'birth_date' in partnerDataRaw ? partnerDataRaw.birth_date : undefined,
+              birthTime: 'birth_time' in partnerDataRaw ? partnerDataRaw.birth_time : undefined,
+              birthPlace: 'birth_place' in partnerDataRaw ? partnerDataRaw.birth_place : undefined,
             });
             if (partnerDataRaw.partner_id !== userId) {
               await supabase
@@ -348,6 +349,38 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
     return result;
   }
 
+  // Partner-UUID laden, wenn userId bekannt
+  useEffect(() => {
+    if (!userId) return;
+    const fetchPartnerId = async () => {
+      // Hole das eigene Profil
+      const { data: userProfile, error } = await supabase
+        .from('user_profiles')
+        .select('partner_id')
+        .eq('id', userId)
+        .single();
+      if (!error && userProfile && userProfile.partner_id) {
+        setPartnerId(userProfile.partner_id);
+        setPartnerLinked(true);
+      } else {
+        // Suche, ob jemand diesen User als Partner hat
+        const { data: possiblePartner, error: partnerError } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('partner_id', userId)
+          .single();
+        if (!partnerError && possiblePartner && possiblePartner.id) {
+          setPartnerId(possiblePartner.id);
+          setPartnerLinked(true);
+        } else {
+          setPartnerId(null);
+          setPartnerLinked(false);
+        }
+      }
+    };
+    fetchPartnerId();
+  }, [userId]);
+
   return (
     <div className="space-y-6 w-full relative pb-24">
       {/* Begrüßungs-Card mit Profilbereich und Abmelde-Icon */}
@@ -415,7 +448,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
         userName={userName}
         inviteCode={inviteCode}
         partnerLinked={partnerLinked}
-        partnerName={partnerName}
+        partnerName={partnerName || ''}
         reloadDashboard={reloadDashboard}
         onPartnerLinked={handlePartnerLinked}
       />
@@ -458,20 +491,20 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
                       const allText = [analysis.summary, analysis.communication, analysis.attachment, analysis.values].join(' ');
                       const sentences = allText.match(/[^.!?]+[.!?]+/g) || [allText];
                       const summary = sentences.slice(0, 3).join(' ').trim();
-                      return replaceNamesWithEure(summary, userName, partnerName);
+                      return replaceNamesWithEure(summary, userName, partnerName || '');
                     })()}</div>
                   </div>
                   <div className="flex flex-col md:flex-row gap-4 p-2">
                     <div className="bg-green-50 rounded-xl p-4 flex-1">
                       <div className="font-semibold text-green-700 flex items-center gap-2 mb-1 text-lg"><span>💪</span>Stärken</div>
                       <ul className="list-disc pl-5 text-midnight/90 text-sm">
-                        {analysis.strengths && analysis.strengths.map((s, i) => <li key={i}>{replaceNamesWithEure(s, userName, partnerName)}</li>)}
+                        {analysis.strengths && analysis.strengths.map((s, i) => <li key={i}>{replaceNamesWithEure(s, userName, partnerName || '')}</li>)}
                       </ul>
                     </div>
                     <div className="bg-amber-50 rounded-xl p-4 flex-1">
                       <div className="font-semibold text-amber-700 flex items-center gap-2 mb-1 text-lg"><span>🌱</span>Wachstum</div>
                       <ul className="list-disc pl-5 text-midnight/90 text-sm">
-                        {analysis.growthAreas && analysis.growthAreas.map((g, i) => <li key={i}>{replaceNamesWithEure(g, userName, partnerName)}</li>)}
+                        {analysis.growthAreas && analysis.growthAreas.map((g, i) => <li key={i}>{replaceNamesWithEure(g, userName, partnerName || '')}</li>)}
                       </ul>
                     </div>
                   </div>
@@ -524,8 +557,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
                             birth_date: astroForm.birthDate,
                             birth_time: astroForm.birthTime,
                             birth_place: astroForm.birthPlace,
-                            astrology: true,
-                            email: email,
+                            astrology: true
                           })
                           .eq('id', userId);
                         if (error) throw error;
@@ -614,8 +646,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
                             birth_date: astroForm.birthDate,
                             birth_time: astroForm.birthTime,
                             birth_place: astroForm.birthPlace,
-                            astrology: true,
-                            email: email,
+                            astrology: true
                           })
                           .eq('id', userId);
                         if (error) throw error;
@@ -679,6 +710,10 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
                     </button>
                   </form>
                 </>
+              ) : (isAstroReady(userAstroData, userData?.astrology) && !isAstroReady(partnerAstroData, partnerData?.astrology)) ? (
+                <div className="mb-3 text-midnight/80 text-sm text-center font-medium">
+                  Dein Partner hat seine Geburtsdaten noch nicht eingegeben. Sobald beide Daten vorhanden sind, erstellt Lumo eure astrologische Analyse!
+                </div>
               ) : (analysis && analysis.astrology ? (
                 <>
                   {/* Chat-Bubble mit Emoji statt Lumo-Avatar für Astro */}
@@ -737,7 +772,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
       <div className="flex flex-col md:flex-row gap-6 w-full max-w-5xl mx-auto mt-6">
         {/* Linke Spalte: WeeklyReflectionCard + Jahrestag */}
         <div className="flex-1 min-w-[320px] flex flex-col gap-6">
-          <WeeklyReflectionCard userId={userId || ''} partnerId={partnerLinked ? partnerName : undefined} />
+          <WeeklyReflectionCard userId={userId || ''} partnerId={partnerId || undefined} />
           <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 text-sm w-full">
             <Gift className="w-6 h-6 text-lavender" />
             <p className="text-midnight">Jahrestag in 3 Tagen – <strong>Zeit für etwas Besonderes?</strong></p>
@@ -928,7 +963,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
       {showCoach && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setShowCoach(false)}>
           <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden p-0" onClick={e => e.stopPropagation()}>
-            <LumoCoach userId={userId || ''} userName={userName} partnerName={partnerName} onClose={() => setShowCoach(false)} />
+            <LumoCoach userId={userId || ''} userName={userName} partnerName={partnerName || ''} partnerLinked={partnerLinked} onClose={() => setShowCoach(false)} />
           </div>
         </div>
       )}

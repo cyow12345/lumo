@@ -14,10 +14,11 @@ interface LumoCoachProps {
   userId: string;
   userName?: string;
   partnerName?: string;
+  partnerLinked?: boolean;
   onClose?: () => void;
 }
 
-const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, onClose }) => {
+const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, partnerLinked, onClose }) => {
   const [userFirstName, setUserFirstName] = useState<string>(userName || 'Gast');
   const [chat, setChat] = useState<{ role: 'coach' | 'user'; text: string }[]>([]);
   const [input, setInput] = useState('');
@@ -41,10 +42,10 @@ const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, on
         .select('id, name, partner_id, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence, birth_date, birth_time, birth_place, relationship_start_date, relationship_status')
         .eq('id', userId)
         .single();
-      if (!error && data) {
+      if (!error && data && typeof data === 'object' && 'name' in data) {
         setUserData(data);
-        setUserFirstName(data.name?.split(' ')[0] || 'Gast');
-        let partnerId = data.partner_id;
+        setUserFirstName('name' in data && typeof data.name === 'string' ? data.name.split(' ')[0] : 'Gast');
+        let partnerId = 'partner_id' in data ? data.partner_id : undefined;
         // Wenn keine Partner-ID gesetzt ist, suche nach einem User, der diesen User als Partner hat
         if (!partnerId) {
           const { data: possiblePartner, error: partnerSearchError } = await supabase
@@ -52,7 +53,7 @@ const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, on
             .select('id')
             .eq('partner_id', userId)
             .single();
-          if (!partnerSearchError && possiblePartner && possiblePartner.id) {
+          if (!partnerSearchError && possiblePartner && typeof possiblePartner === 'object' && 'id' in possiblePartner) {
             partnerId = possiblePartner.id;
           }
         }
@@ -62,7 +63,7 @@ const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, on
             .select('name, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence, birth_date, birth_time, birth_place')
             .eq('id', partnerId)
             .single();
-          if (!partnerError && partnerProfile) {
+          if (!partnerError && partnerProfile && typeof partnerProfile === 'object' && 'name' in partnerProfile) {
             setPartnerData(partnerProfile);
             // Debug-Ausgabe für Bindungsstil
             console.log('Partnerdaten:', partnerProfile);
@@ -111,11 +112,15 @@ const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, on
     if (name && chat.length === 0) {
       setChat([{ role: 'coach', text: `Hallo ${name}, wie geht es dir mit deiner Beziehung?` }]);
     }
+    // Begrüßung nachträglich aktualisieren, falls sie noch 'Hallo Gast...' ist
+    if (name && chat.length > 0 && chat[0].role === 'coach' && chat[0].text.startsWith('Hallo Gast')) {
+      setChat([{ role: 'coach', text: `Hallo ${name}, wie geht es dir mit deiner Beziehung?` }, ...chat.slice(1)]);
+    }
   }, [userData?.name, userName, userFirstName, chat.length]);
 
   // Hilfsfunktion: System-Prompt dynamisch bauen
   function buildSystemPrompt() {
-    let prompt = 'Du bist Lumo, ein empathischer, moderner KI-Coach.';
+    let prompt = 'Stell dir vor, du bist Lumo – die beste Freundin: warmherzig, direkt, ehrlich, liebevoll, empathisch, manchmal frech, aber immer herzlich. Du antwortest locker, wie im echten Chat, niemals wie ein professioneller Coach. Sprich die Person direkt an, aber verzichte auf künstliche Anreden wie "Liebe/r [Name]". Keine Floskeln, keine Distanz, sondern echtes Mitgefühl und Nähe. Sei ehrlich, bestärkend, manchmal frech, aber immer auf Augenhöhe.';
     if (userData) {
       prompt += `\nDer Nutzer heißt ${userData.name}.`;
       if (userData.age) prompt += ` Alter: ${userData.age}.`;
@@ -142,7 +147,7 @@ const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, on
       if (partnerData.birth_time) prompt += ` Geburtszeit: ${partnerData.birth_time}.`;
       if (partnerData.birth_place) prompt += ` Geburtsort: ${partnerData.birth_place}.`;
     }
-    prompt += '\nNutze diese Informationen, um möglichst individuell und empathisch auf Fragen zu antworten. Sprich den Nutzer mit seinem Namen an und beziehe dich auf die Beziehung.';
+    prompt += '\nNutze diese Informationen, um möglichst individuell, locker und freundschaftlich auf Fragen zu antworten. Sprich den Nutzer mit seinem Namen an und beziehe dich auf die Beziehung. Sei ehrlich, direkt, herzlich und auf Augenhöhe.';
     return prompt;
   }
 
@@ -151,11 +156,18 @@ const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, on
     setChat(prev => [...prev, { role: 'user', text: question }]);
     setLoading(true);
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Supabase-Session holen
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.access_token) {
+        setChat(prev => [...prev, { role: 'coach', text: 'Du bist nicht eingeloggt. Bitte melde dich an, um Lumo zu nutzen.' }]);
+        setLoading(false);
+        return;
+      }
+      const response = await fetch('https://vifbqtzkoytsgowctpjo.functions.supabase.co/openai-proxy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer REMOVED_SECRET`, // <-- Unsicher!
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
@@ -184,6 +196,22 @@ const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, on
       setInput('');
     }
   };
+
+  // Wenn kein Partner verknüpft ist, Hinweis anzeigen und Chat deaktivieren
+  if (partnerLinked === false) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[40vh] p-8">
+        <img src="/lumo_logo.png" alt="Lumo Coach" className="w-16 h-16 mb-4" />
+        <div className="text-lg font-semibold text-navlink mb-2">
+          Hallo {userFirstName || userName || 'Gast'}
+        </div>
+        <div className="text-midnight/80 text-center">
+          Um den Lumo-Coach zu nutzen, verknüpfe bitte zuerst deinen Partner.<br />
+          <span className="text-lavender font-medium">Die Partnerverlinkung ist Voraussetzung für das Coaching.</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-start min-h-[70vh] w-full relative">

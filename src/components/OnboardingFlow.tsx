@@ -199,6 +199,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
             birth_place: userData.birthPlace,
             invite_code: inviteCode.toUpperCase()
           };
+          console.log('[LUMO DEBUG] Profil wird gespeichert:', profileData);
           await supabase
             .from('user_profiles')
             .upsert([
@@ -215,7 +216,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                 .select('id, partner_id')
                 .eq('invite_code', codeInput.trim().toUpperCase())
                 .single();
-              if (!partnerError && partner && !partner.partner_id) {
+              if (!partnerError && partner && typeof partner === 'object' && 'id' in partner && !('partner_id' in partner && partner.partner_id)) {
                 // Verknüpfe beide User gegenseitig
                 await supabase
                   .from('user_profiles')
@@ -234,7 +235,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                     .select('partner_id')
                     .eq('id', data.user.id)
                     .single();
-                  if (me && me.partner_id) {
+                  if (me && typeof me === 'object' && 'partner_id' in me && me.partner_id) {
                     linked = true;
                   } else {
                     await new Promise(res => setTimeout(res, 400));

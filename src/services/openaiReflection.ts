@@ -1,11 +1,17 @@
+import { supabase } from '../lib/supabaseClient';
+
 export async function fetchReflection(answer: string): Promise<string> {
-  const apiKey = "REMOVED_SECRET"; // Achtung: Unsicher im Frontend!
-  const prompt = `Du bist ein empathischer, moderner Beziehungscoach. Analysiere die folgende Wochenreflexion. Wenn ein Name genannt wird, kannst du die Person direkt ansprechen, aber verzichte auf Floskeln wie 'Liebe/r [Name]' oder 'Herzliche Grüße'. Gib eine direkte, reflektierende Rückmeldung in 2-3 Sätzen, die die Erfahrung der Person einordnet und auf den Punkt bringt. Vermeide pauschale Formulierungen und konzentriere dich auf das Wesentliche. Beende deine Rückmeldung immer mit einer abschließenden, wertenden Aussage – stelle keine Fragen und gib keine Aufforderungen. Hier ist die Reflexion: "${answer}"`;
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const prompt = `Stell dir vor, du bist die beste Freundin – warmherzig, direkt, ehrlich, liebevoll und einfühlsam. Du antwortest locker, wie im echten Chat, niemals wie ein professioneller Coach. Analysiere die folgende Wochenreflexion und gib eine Rückmeldung in 2-3 Sätzen, die sich anfühlt wie von einer besten Freundin: ehrlich, bestärkend, manchmal frech, aber immer herzlich. Keine Floskeln, keine Distanz, sondern echtes Mitgefühl und Nähe. Sprich die Person direkt an, aber verzichte auf künstliche Anreden wie 'Liebe/r [Name]'. Beende deine Rückmeldung immer mit einer wertenden, freundschaftlichen Aussage – stelle keine Fragen und gib keine Aufforderungen. Hier ist die Reflexion: "${answer}"`;
+
+  // Supabase-Session holen
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session || !session.access_token) throw new Error('Nicht eingeloggt');
+
+  const response = await fetch("https://vifbqtzkoytsgowctpjo.functions.supabase.co/openai-proxy", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
+      "Authorization": `Bearer ${session.access_token}`,
     },
     body: JSON.stringify({
       model: "gpt-3.5-turbo",

@@ -20,21 +20,24 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({ userId, par
 
   // Lade die letzten Reflexionen für dieses Paar
   useEffect(() => {
-    if (!userId || !partnerId) return;
+    if (!userId) return;
     const fetchReflections = async () => {
       const { data, error } = await supabase
         .from('weekly_reflections')
         .select('created_at, answer, reflection')
-        .or(`user_id.eq.${userId},user_id.eq.${partnerId}`)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(5);
+      if (error) {
+        console.error('Fehler bei weekly_reflections:', error);
+      }
       if (!error && data) {
         setHistory(data);
         if (data.length > 0) setReflection(data[0].reflection);
       }
     };
     fetchReflections();
-  }, [userId, partnerId]);
+  }, [userId]);
 
   const handleChange = (value: string) => {
     setAnswer(value);
@@ -48,15 +51,20 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({ userId, par
       const aiReflection = await fetchReflection(`${QUESTION}\n${answer}`);
       setReflection(aiReflection);
       // In Supabase speichern
+      const insertData: any = {
+        user_id: userId,
+        answer,
+        reflection: aiReflection,
+      };
       const { error: insertError } = await supabase
         .from('weekly_reflections')
-        .insert({
-          user_id: userId,
-          partner_id: partnerId,
-          answer,
-          reflection: aiReflection,
-        });
-      if (insertError) throw insertError;
+        .insert(insertData);
+      if (insertError) {
+        console.error('Insert-Fehler weekly_reflections:', insertError);
+        setError('Fehler beim Speichern der Reflexion: ' + (insertError.message || 'Unbekannter Fehler'));
+        setLoading(false);
+        return;
+      }
       setHistory(prev => [{ created_at: new Date().toISOString(), answer, reflection: aiReflection }, ...prev]);
       setAnswer('');
       setSuccessMsg('Danke für deine Angabe!');
@@ -78,7 +86,6 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({ userId, par
       </div>
       <div className="px-5 pb-2">
         <div className="bg-lavender/10 rounded-xl p-4 flex items-center gap-3 min-h-[56px]">
-          <span className="text-xl">💜</span>
           <div className="text-midnight/90 text-base">
             {reflection
               ? reflection

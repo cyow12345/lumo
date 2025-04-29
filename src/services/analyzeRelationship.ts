@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabaseClient';
+
 // Typen für die Datenstruktur (kannst du bei Bedarf erweitern)
 export interface PersonData {
   name: string;
@@ -51,8 +53,6 @@ export interface AnalysisResult {
   };
   tip: string;
 }
-
-const OPENAI_API_KEY = 'REMOVED_SECRET';
 
 export async function analyzeRelationship(
   personA: PersonData,
@@ -156,11 +156,14 @@ Bitte antworte im folgenden JSON-Format:
 WICHTIG: Gib die Antwort ausschließlich als valides JSON-Objekt zurück, ohne Kommentare, ohne zusätzliche Erklärungen, ohne Markdown oder Codeblöcke. Achte darauf, dass alle Felder korrekt mit Kommas getrennt sind und keine doppelten Felder vorkommen.`;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Supabase-Session holen
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !session.access_token) throw new Error('Nicht eingeloggt');
+    const response = await fetch('https://vifbqtzkoytsgowctpjo.functions.supabase.co/openai-proxy', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',

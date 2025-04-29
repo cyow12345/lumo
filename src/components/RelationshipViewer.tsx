@@ -31,12 +31,12 @@ const RelationshipViewer: React.FC<RelationshipViewerProps> = ({ userId }) => {
         
         if (userError) throw userError;
         
-        if (userData) {
-          setUserName(userData.name || 'Benutzer');
-          setInviteCode(userData.invite_code || '');
+        if (userData && typeof userData === 'object' && 'name' in userData) {
+          setUserName('name' in userData ? userData.name : 'Benutzer');
+          setInviteCode('invite_code' in userData ? userData.invite_code : '');
           
           // Wenn ein Partner verknüpft ist, lade dessen Daten
-          if (userData.partner_id) {
+          if ('partner_id' in userData && userData.partner_id) {
             setPartnerConnected(true);
             
             const { data: partnerData, error: partnerError } = await supabase
@@ -45,7 +45,7 @@ const RelationshipViewer: React.FC<RelationshipViewerProps> = ({ userId }) => {
               .eq('id', userData.partner_id)
               .single();
               
-            if (!partnerError && partnerData) {
+            if (!partnerError && partnerData && typeof partnerData === 'object' && 'name' in partnerData) {
               setPartnerName(partnerData.name);
             }
           } else {

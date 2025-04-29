@@ -38,7 +38,7 @@ const PartnerStatusBox: React.FC<PartnerStatusBoxProps> = ({ userId, userName, i
         .select('id, name, partner_id')
         .eq('invite_code', codeInput.trim().toUpperCase())
         .single();
-      if (error || !partner) {
+      if (error || !partner || typeof partner !== 'object' || !('id' in partner)) {
         setStatus('error');
         setStatusMsg('Kein Nutzer mit diesem Code gefunden.');
         return;
@@ -48,7 +48,7 @@ const PartnerStatusBox: React.FC<PartnerStatusBoxProps> = ({ userId, userName, i
         setStatusMsg('Du kannst dich nicht mit dir selbst verknüpfen.');
         return;
       }
-      if (partner.partner_id) {
+      if ('partner_id' in partner && partner.partner_id) {
         setStatus('error');
         setStatusMsg('Dieser Code ist bereits mit einem Partner verknüpft.');
         return;
