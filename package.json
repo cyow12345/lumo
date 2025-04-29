@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "start-mcp-supabase": "npx -y @supabase/mcp-server-supabase@latest --access-token \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4YWh3emR2aXF3cmNjemx2dWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMzOTM5NzMsImV4cCI6MjAyODk2OTk3M30.7AuK8xdSGDCW8dGYXWujmLmj9UjPcZV1r8nFGC6VNKg\"",
     "clean": "rm -rf build",
     "clean:all": "rm -rf build node_modules"
