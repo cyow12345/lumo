@@ -1,0 +1,172 @@
+.survey-question {
+  margin-bottom: 1.5rem;
+}
+
+.question-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.question-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  flex: 1;
+}
+
+.required-mark {
+  color: #ef4444;
+  margin-left: 0.25rem;
+  font-weight: bold;
+}
+
+.question-content {
+  margin-top: 1rem;
+}
+
+/* Scale Question Styles */
+.scale-container {
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.scale-options {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.scale-option {
+  flex: 1;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.scale-option:hover {
+  background-color: #f1f5f9;
+}
+
+.scale-option.selected {
+  background-color: #0891b2;
+  color: white;
+  border-color: #0891b2;
+}
+
+/* Multiple Choice & Checkbox Styles */
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
+}
+
+.option-item:hover {
+  background-color: #f1f5f9;
+}
+
+.option-item.selected {
+  border-color: #0891b2;
+  background-color: rgba(8, 145, 178, 0.05);
+}
+
+.option-radio, .option-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #cbd5e1;
+  margin-right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.option-radio {
+  border-radius: 50%;
+}
+
+.option-checkbox {
+  border-radius: 4px;
+}
+
+.radio-dot, .checkbox-mark {
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.selected .option-radio, .selected .option-checkbox {
+  border-color: #0891b2;
+  background-color: #0891b2;
+}
+
+.selected .radio-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: white;
+  border-radius: 50%;
+  opacity: 1;
+}
+
+.selected .checkbox-mark {
+  opacity: 1;
+  width: 0.75rem;
+  height: 0.5rem;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.option-text {
+  flex: 1;
+}
+
+/* Text Input Styles */
+.text-input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f8fafc;
+  transition: border-color 0.2s ease;
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: #0891b2;
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+}
+
+.text-input::placeholder {
+  color: #94a3b8;
+} 

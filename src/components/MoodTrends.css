@@ -1,0 +1,196 @@
+.mood-trends-container {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.mood-trends-title {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.trends-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.view-selector {
+  display: flex;
+  gap: 10px;
+}
+
+.view-button {
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-button.active {
+  background-color: #0891b2;
+  color: white;
+  border-color: #0891b2;
+}
+
+.time-range-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.time-range-selector label {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.time-range-selector select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #fff;
+  font-size: 14px;
+}
+
+.trends-content {
+  min-height: 300px;
+}
+
+.trends-loading,
+.trends-error,
+.trends-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #64748b;
+  text-align: center;
+}
+
+.trends-error {
+  color: #ef4444;
+}
+
+.trends-empty p {
+  margin-top: 10px;
+  font-size: 14px;
+  max-width: 300px;
+}
+
+/* Temporäre Chart-Styles (ohne Chart.js) */
+.intensity-chart-placeholder,
+.mood-distribution-chart-placeholder {
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.chart-title {
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #0f172a;
+  font-size: 16px;
+  text-align: center;
+}
+
+.chart-info {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 200px;
+  margin-bottom: 15px;
+}
+
+.mood-distribution-chart-placeholder .chart-info {
+  flex-direction: column;
+  height: auto;
+  gap: 10px;
+}
+
+.chart-data-point {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.mood-distribution-chart-placeholder .chart-data-point {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+
+.chart-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 5px;
+}
+
+.mood-distribution-chart-placeholder .chart-label {
+  width: 40px;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.chart-bar {
+  width: 30px;
+  background-color: #0ea5e9;
+  border-radius: 3px 3px 0 0;
+}
+
+.chart-horizontal-bar {
+  height: 24px;
+  background-color: #0ea5e9;
+  border-radius: 3px;
+}
+
+.chart-value {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 5px;
+}
+
+.chart-note {
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+.mood-emoji {
+  font-size: 18px;
+}
+
+@media screen and (max-width: 768px) {
+  .trends-controls {
+    flex-direction: column;
+  }
+  
+  .chart-info {
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+  
+  .intensity-chart-placeholder .chart-info {
+    gap: 10px;
+  }
+  
+  .chart-bar {
+    width: 20px;
+  }
+} 

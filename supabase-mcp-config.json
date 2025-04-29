@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4YWh3emR2aXF3cmNjemx2dWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMzOTM5NzMsImV4cCI6MjAyODk2OTk3M30.7AuK8xdSGDCW8dGYXWujmLmj9UjPcZV1r8nFGC6VNKg"
+      ]
+    }
+  },
+  "hinweis": "Das Access-Token wurde aktualisiert. Du kannst jetzt den MCP-Server mit dem Befehl 'npm run start-mcp-supabase' starten."
+} 

@@ -1,0 +1,67 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "REACT_APP_SUPABASE_URL=http://127.0.0.1:54321 REACT_APP_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0 react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "start-mcp-supabase": "npx -y @supabase/mcp-server-supabase@latest --access-token \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4YWh3emR2aXF3cmNjemx2dWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMzOTM5NzMsImV4cCI6MjAyODk2OTk3M30.7AuK8xdSGDCW8dGYXWujmLmj9UjPcZV1r8nFGC6VNKg\"",
+    "clean": "rm -rf build",
+    "clean:all": "rm -rf build node_modules"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@supabase/mcp-server-supabase": "^0.3.5",
+    "@supabase/supabase-js": "^2.49.4",
+    "@tailwindcss/postcss": "^4.1.4",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.0",
+    "@types/react-fontawesome": "^1.6.8",
+    "cors": "^2.8.5",
+    "cross-fetch": "^4.1.0",
+    "dotenv": "^16.5.0",
+    "esm": "^3.2.25",
+    "express": "^5.1.0",
+    "lucide-react": "^0.503.0",
+    "node-fetch": "^3.3.2",
+    "react": "^18.2.0",
+    "react-datepicker": "^8.3.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "recharts": "^2.15.3",
+    "typescript": "^4.9.5",
+    "uuid": "^11.1.0",
+    "web-vitals": "^4.2.4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/server-postgres": "^0.6.2",
+    "@types/next": "^8.0.7",
+    "@types/node": "^22.15.3",
+    "@types/react-datepicker": "^6.2.0",
+    "@types/uuid": "^10.0.0",
+    "autoprefixer": "^10.4.21",
+    "next": "^15.3.1",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17"
+  }
+}
