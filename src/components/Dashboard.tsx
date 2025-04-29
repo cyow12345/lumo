@@ -275,7 +275,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
   const handleSettings = () => setShowSettingsPopup(true);
 
   // Lumo-Logo Pfad wie in App.tsx
-  const lumoLogo = process.env.PUBLIC_URL + '/lumo_logo.png';
+  const lumoLogo = '/lumo_logo.png';
 
   const [showAstroForm, setShowAstroForm] = useState(false);
   const [astroForm, setAstroForm] = useState({ birthDate: '', birthTime: '', birthPlace: '' });

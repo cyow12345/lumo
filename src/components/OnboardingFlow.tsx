@@ -352,7 +352,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
       <div className="bg-white rounded-2xl px-8 pt-16 pb-8 max-w-xl w-full shadow-xl relative animate-fadeIn z-20">
         {/* Logo */}
         <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
-          <img src={process.env.PUBLIC_URL + '/lumo_logo.png'} alt="Lumo Logo" className="w-24 h-24" />
+          <img src="/lumo_logo.png" alt="Lumo Logo" className="w-24 h-24" />
         </div>
         {/* Progress Bar */}
         <div className="mb-8 pt-2">

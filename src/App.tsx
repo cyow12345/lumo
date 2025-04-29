@@ -21,7 +21,7 @@ import AssessmentList from './components/AssessmentList';
 import OnboardingFlow from './components/OnboardingFlow';
 import { Home, MessageCircleHeart, SmilePlus, BarChart, Notebook, CheckSquare, Trophy, Settings as SettingsIcon, LogOut, CheckCircle2, AlertCircle, Heart, Calendar, Clock, Brain, BookOpen, User, Users, ClipboardList } from 'lucide-react';
 // Verwende den public-Pfad
-const lumoLogo = process.env.PUBLIC_URL + '/lumo_logo.png';
+const lumoLogo = '/lumo_logo.png';
 
 // Definiere Interface für User
 interface User {
