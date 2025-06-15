@@ -5,7 +5,7 @@ import '../index.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Lumo - liest zwischen den Zeilen, damit ihr euch wirklich hört!',
+  title: 'Lumo - Dein persönlicher KI-Coach für Beziehungen',
   description: 'Dein persönlicher KI-Coach für Beziehungen und Wohlbefinden',
 }
 
