@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { CheckCircle2, Copy, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Copy, AlertCircle, Sparkles, Heart, MessageCircle, Star, Settings } from 'lucide-react';
 
 interface OnboardingFlowProps {
   onComplete: (userData: any) => void;
@@ -14,11 +14,8 @@ const RELATIONSHIP_VALUES: RelationshipValue[] = ['Vertrauen', 'Ehrlichkeit', 'K
 
 const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, isLoginOnboarding = false }) => {
   const [step, setStep] = useState(1);
-  // Partner-Link-Status
   const [inviteCode, setInviteCode] = useState<string>('');
   const [codeCopied, setCodeCopied] = useState(false);
-  const [partnerTab, setPartnerTab] = useState<'generate' | 'join'>('generate');
-  const [codeInput, setCodeInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState('');
   const codeRef = useRef<HTMLInputElement>(null);
@@ -26,38 +23,30 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
   const birthPlaceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const [userData, setUserData] = useState({
-    // Persönliche Infos
+    // Schritt 1: Willkommen & Basics
     name: '',
     age: '',
     gender: '',
+    happyMoments: '', // Neue positive Einstiegsfrage
+
+    // Schritt 2: Über dich
+    tryNewThings: 1,      // "Ich liebe es, Neues auszuprobieren"
+    socialEnergy: 1,      // "Zeit mit anderen Menschen gibt mir Energie"
+    planAhead: 1,         // "Ich plane gerne im Voraus"
+    harmonyOriented: 1,   // "Harmonie ist mir wichtig"
+    emotionalDepth: 1,    // "Ich denke viel über Gefühle nach"
+
+    // Schritt 3: Deine Beziehung
     relationshipStartDate: '',
-    relationshipStatus: '',
+    timeTogetherPref: '', // "Wie verbringst du am liebsten Zeit mit deinem Partner?"
+    closenessStyle: '',   // "Was bedeutet Nähe für dich?"
     
-    // Bindungsstil
-    eveningAlone: '',
-    separationAnxiety: 1,
-    attachmentStyle: '',
+    // Schritt 4: Kommunikation
+    showUnderstanding: '', // "Wie zeigst du deinem Partner, dass du ihn/sie verstehst?"
+    resolveConflicts: '', // "Was hilft dir am besten, wenn ihr unterschiedlicher Meinung seid?"
     
-    // Kommunikationsstil
-    addressingIssues: '',
-    emotionalExpression: 1,
-    hurtResponse: '',
-    
-    // Konfliktverhalten
-    previousConflict: '',
-    emotionalConflicts: 1,
-    criticismResponse: '',
-    
-    // Persönlichkeit (Big Five)
-    openness: 1,
-    extraversion: 1,
-    conscientiousness: 1,
-    agreeableness: 1,
-    neuroticism: 1,
-    
-    // Werte
+    // Schritt 5: Werte
     relationshipValues: [] as RelationshipValue[],
-    fidelityMeaning: '',
     valuesPriority: {
       vertrauen: 1,
       leidenschaft: 1,
@@ -65,35 +54,29 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
       humor: 1,
       treue: 1
     },
-    
-    // Kindheit & Prägung
-    parentalInfluence: '',
-    trustExperience: '',
-    parentalPatterns: '',
 
-    // Optionale Features
+    // Schritt 6: Features
     whatsappImport: false,
     astrology: false,
-
-    // Registrierung
-    email: '',
-    password: '',
-
-    // Astrologie-Details
     birthDate: '',
     birthTime: '',
     birthPlace: '',
+
+    // Schritt 7: Account
+    email: '',
+    password: '',
     
-    // Partner-Integration
-    partnerInviteSent: false
+    // Schritt 8: Partner
+    partnerInviteSent: false,
+    partnerCode: ''
   });
 
-  // Erhöhe die Anzahl der Schritte
-  const totalSteps = 11;
+  // Reduziere die Anzahl der Schritte
+  const totalSteps = 8;
 
-  // Generiere einen Einladungscode, wenn der letzte Schritt erreicht wird
+  // Generiere einen Einladungscode im letzten Schritt
   useEffect(() => {
-    if (step === 10) {
+    if (step === totalSteps) {
       generateInviteCode();
     }
   }, [step]);
@@ -209,12 +192,12 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
               }
             ]);
           // Partnercode-Verknüpfung im Hintergrund
-          if (codeInput.trim()) {
+          if (userData.partnerCode.trim()) {
             try {
               const { data: partner, error: partnerError } = await supabase
                 .from('user_profiles')
                 .select('id, partner_id')
-                .eq('invite_code', codeInput.trim().toUpperCase())
+                .eq('invite_code', userData.partnerCode.trim().toUpperCase())
                 .single();
               if (!partnerError && partner && typeof partner === 'object' && 'id' in partner && !('partner_id' in partner && partner.partner_id)) {
                 // Verknüpfe beide User gegenseitig
@@ -272,43 +255,58 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
 
   const isNextDisabled = () => {
     switch (step) {
-      case 1: // Name & Alter
-        return !userData.name || !userData.age;
-      case 2: // Geschlecht & Beziehungsstart
-        return !userData.gender || !userData.relationshipStartDate;
-      case 3: // Bindungsstil
-        return !userData.eveningAlone || !userData.attachmentStyle;
-      case 4: // Kommunikationsstil
-      case 1: // Persönliche Infos
-        return !userData.name || !userData.age || !userData.gender || !userData.relationshipStartDate;
-      case 2: // Bindungsstil
-        return !userData.eveningAlone || !userData.attachmentStyle;
-      case 3: // Kommunikationsstil
-        return !userData.addressingIssues || !userData.hurtResponse;
-      case 4: // Konfliktverhalten
-        return !userData.previousConflict || !userData.criticismResponse;
-      case 5: // Persönlichkeit
-        return userData.openness === 0 || userData.extraversion === 0;
-      case 6: // Werte
+      case 1: // Willkommen & Basics
+        return !userData.name || !userData.age || !userData.gender;
+      case 2: // Über dich
+        return userData.tryNewThings === 0 || 
+               userData.socialEnergy === 0 || 
+               userData.planAhead === 0 || 
+               userData.harmonyOriented === 0 || 
+               userData.emotionalDepth === 0;
+      case 3: // Deine Beziehung
+        return !userData.relationshipStartDate || 
+               !userData.timeTogetherPref || 
+               !userData.closenessStyle;
+      case 4: // Kommunikation
+        return !userData.showUnderstanding || 
+               !userData.resolveConflicts;
+      case 5: // Werte
         return userData.relationshipValues.length === 0;
-      case 7: // Kindheit
-        return !userData.parentalInfluence;
-      case 8: // Optionale Features
-        return false; // Immer erlaubt, da optional
-      case 9: // Registrierung
-        return !userData.email || !userData.password || userData.password.length < 8;
-      case 10: // Partner-Integration
-        return false; // Immer erlaubt weiterzugehen
+      case 6: // Features
+        return false; // Optional
+      case 7: // Account
+        return !userData.email || 
+               !userData.password || 
+               userData.password.length < 8;
+      case 8: // Partner
+        return false; // Optional
       default:
         return false;
     }
   };
 
   // Hilfsfunktion für Skala-Komponente
-  const ScaleInput = ({ name, value, label }: { name: string; value: number; label: string }) => (
-    <div className="space-y-6">
-      <label className="block text-sm font-medium text-midnight">{label}</label>
-      <div className="flex items-center gap-4">
+  const ScaleInput = ({ 
+    name, 
+    value, 
+    label, 
+    minLabel = "Niedrig",
+    maxLabel = "Hoch",
+    icon
+  }: { 
+    name: string; 
+    value: number; 
+    label: string;
+    minLabel?: string;
+    maxLabel?: string;
+    icon?: React.ReactNode;
+  }) => (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <label className="text-sm font-medium text-midnight">{label}</label>
+      </div>
+      <div className="space-y-2">
         <input
           type="range"
           min="1"
@@ -317,7 +315,10 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
           onChange={(e) => handleScaleChange(name, parseInt(e.target.value))}
           className="w-full h-2 bg-lavender/20 rounded-lg appearance-none cursor-pointer accent-lavender"
         />
-        <span className="text-sm font-medium text-navlink">{value}</span>
+        <div className="flex justify-between text-xs text-midnight/60">
+          <span>{minLabel}</span>
+          <span>{maxLabel}</span>
+        </div>
       </div>
     </div>
   );
@@ -349,16 +350,17 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl px-12 pt-16 pb-8 max-w-4xl w-full shadow-xl relative animate-fadeIn z-20">
+      <div className="bg-white rounded-2xl px-6 sm:px-12 pt-16 pb-8 w-full max-w-4xl shadow-xl relative animate-fadeIn z-20">
         {/* Logo */}
         <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
-          <img src="/lumo_logo.png" alt="Lumo Logo" className="w-24 h-24" />
+          <img src="/lumo_logo.png" alt="Lumo Logo" className="w-20 h-20 sm:w-24 sm:h-24" />
         </div>
+
         {/* Progress Bar */}
-        <div className="mb-8 pt-2">
+        <div className="mb-6 sm:mb-8 pt-2">
           <div className="flex justify-between mb-2">
             <span className="text-xs text-midnight/60">Schritt {step} von {totalSteps}</span>
-            <span className="text-sm font-medium text-navlink">{Math.round((step / totalSteps) * 100)}% geschafft</span>
+            <span className="text-xs sm:text-sm font-medium text-navlink">{Math.round((step / totalSteps) * 100)}% geschafft</span>
           </div>
           <div className="h-2 bg-lavender/10 rounded-full">
             <div 
@@ -367,43 +369,50 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
             />
           </div>
         </div>
-        <div className="mb-8 overflow-y-auto" style={{ maxHeight: '70vh' }}>
+
+        <div className="mb-6 sm:mb-8 overflow-y-auto max-h-[calc(100vh-12rem)] sm:max-h-[70vh]">
+          {/* Schritt 1 */}
           {step === 1 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Persönliche Informationen</h2>
-              <div className="space-y-2">
-                <div>
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-navlink">✨ Willkommen bei Lumo!</h2>
+                <p className="text-sm sm:text-base text-midnight/80">Lass uns dich ein bisschen kennenlernen</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-midnight">Wie heißt du?</label>
                   <input
                     type="text"
                     name="name"
                     value={userData.name}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
                     placeholder="Dein Name"
-                    autoFocus
+                    className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
                   />
                 </div>
-                <div>
+
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-midnight">Wie alt bist du?</label>
                   <input
                     type="number"
                     name="age"
                     value={userData.age}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
                     placeholder="Dein Alter"
                     min="18"
                     max="120"
+                    className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
                   />
                 </div>
-                <div>
+
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-midnight">Dein Geschlecht</label>
                   <select
                     name="gender"
                     value={userData.gender}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
+                    className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
                   >
                     <option value="">Bitte wählen...</option>
                     <option value="male">Männlich</option>
@@ -412,638 +421,522 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                     <option value="no_answer">Keine Angabe</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Wann hat eure Beziehung angefangen?</label>
-                  <input
-                    type="date"
-                    name="relationshipStartDate"
-                    value={userData.relationshipStartDate}
+
+                <div className="space-y-2 mt-6">
+                  <label className="block text-sm font-medium text-midnight">
+                    Was macht dich in deiner Beziehung besonders glücklich? 
+                    <span className="text-midnight/60 text-xs block mt-1">
+                      Das hilft uns, dich und deine Beziehung besser zu verstehen
+                    </span>
+                  </label>
+                  <textarea
+                    name="happyMoments"
+                    value={userData.happyMoments}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                    max={new Date().toISOString().split('T')[0]}
+                    placeholder="z.B. gemeinsames Lachen, tiefe Gespräche, spontane Überraschungen..."
+                    className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm h-24"
                   />
-                  <p className="text-xs text-midnight/60 mt-1">Dieser Tag hilft uns, wichtige Meilensteine und Jahrestage im Blick zu behalten.</p>
                 </div>
+              </div>
+
+              <div className="bg-lavender/5 rounded-xl p-4 mt-6">
+                <p className="text-xs text-midnight/70 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-lavender" />
+                  Schön, dass du da bist! In den nächsten Schritten lernen wir uns noch besser kennen.
+                </p>
               </div>
             </div>
           )}
 
+          {/* Schritt 2 */}
           {step === 2 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">❤️ Bindungsstil</h2>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Wie fühlst du dich, wenn dein Partner mal einen Abend ohne dich verbringen möchte?</label>
-                  <select
-                    name="eveningAlone"
-                    value={userData.eveningAlone}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                  >
-                    <option value="">Bitte wählen...</option>
-                    <option value="happy">Ich freue mich, dass er/sie Spaß hat</option>
-                    <option value="okay">Es ist okay, aber ich vermisse ihn/sie</option>
-                    <option value="worried">Ich mache mir Sorgen oder fühle mich unsicher</option>
-                    <option value="difficult">Es fällt mir sehr schwer, damit umzugehen</option>
-                  </select>
-                </div>
-                <ScaleInput
-                  name="separationAnxiety"
-                  value={userData.separationAnxiety}
-                  label="Ich mache mir oft Sorgen, dass mein Partner mich verlassen könnte."
-                />
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Was trifft eher auf dich zu?</label>
-                  <div className="space-y-2 mt-1">
-                    <label className="flex items-center space-x-3">
-                      <input
-                        type="radio"
-                        name="attachmentStyle"
-                        value="needsCloseness"
-                        checked={userData.attachmentStyle === 'needsCloseness'}
-                        onChange={handleInputChange}
-                        className="form-radio text-lavender"
-                      />
-                      <span>Ich brauche viel Nähe und Rückversicherung.</span>
-                    </label>
-                    <label className="flex items-center space-x-3">
-                      <input
-                        type="radio"
-                        name="attachmentStyle"
-                        value="valuesIndependence"
-                        checked={userData.attachmentStyle === 'valuesIndependence'}
-                        onChange={handleInputChange}
-                        className="form-radio text-lavender"
-                      />
-                      <span>Ich schätze Unabhängigkeit in Beziehungen.</span>
-                    </label>
-                  </div>
-                </div>
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-navlink">🌟 Über dich</h2>
+                <p className="text-sm sm:text-base text-midnight/80">Ein paar Fragen zu deiner Persönlichkeit</p>
               </div>
-            </div>
-          )}
 
-          {step === 3 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Kommunikationsstil</h2>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Wie sprichst du es an, wenn dich etwas am Verhalten deines Partners stört?</label>
-                  <textarea
-                    name="addressingIssues"
-                    value={userData.addressingIssues}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1 h-32"
-                    placeholder="Beschreibe deine typische Herangehensweise..."
-                  />
-                </div>
-
-                <ScaleInput
-                  name="emotionalExpression"
-                  value={userData.emotionalExpression}
-                  label="Es fällt mir leicht, über meine Gefühle zu sprechen."
-                />
-
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Was tust du, wenn du dich durch eine Aussage verletzt fühlst?</label>
-                  <select
-                    name="hurtResponse"
-                    value={userData.hurtResponse}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                  >
-                    <option value="">Bitte wählen...</option>
-                    <option value="listen">Ich höre zu und teile meine Gefühle mit</option>
-                    <option value="defensive">Ich werde defensiv und erkläre mich</option>
-                    <option value="withdraw">Ich ziehe mich zurück</option>
-                    <option value="emotional">Ich reagiere emotional</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Konfliktverhalten</h2>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Erzähl von einem Streit in einer früheren Beziehung. Was war der Auslöser?</label>
-                  <textarea
-                    name="previousConflict"
-                    value={userData.previousConflict}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1 h-20"
-                    placeholder="Beschreibe die Situation..."
-                  />
-                </div>
-
-                <ScaleInput
-                  name="emotionalConflicts"
-                  value={userData.emotionalConflicts}
-                  label="Ich werde schnell emotional oder laut bei Konflikten."
-                />
-
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Wie reagierst du auf Kritik vom Partner?</label>
-                  <select
-                    name="criticismResponse"
-                    value={userData.criticismResponse}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                  >
-                    <option value="">Bitte wählen...</option>
-                    <option value="explain">Ich erkläre mich sofort</option>
-                    <option value="withdraw">Ich ziehe mich zurück</option>
-                    <option value="listen">Ich höre erst zu</option>
-                    <option value="apologize">Ich entschuldige mich direkt</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 5 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">🧠 Persönlichkeit</h2>
-              <div className="space-y-2">
-                <ScaleInput
-                  name="openness"
-                  value={userData.openness}
-                  label="Ich probiere gerne Neues aus. (Offenheit)"
-                />
-                <ScaleInput
-                  name="extraversion"
-                  value={userData.extraversion}
-                  label="Ich bin gerne unter Menschen. (Extraversion)"
-                />
-                <ScaleInput
-                  name="conscientiousness"
-                  value={userData.conscientiousness}
-                  label="Ich halte, was ich verspreche. (Gewissenhaftigkeit)"
-                />
-                <ScaleInput
-                  name="agreeableness"
-                  value={userData.agreeableness}
-                  label="Mir ist Harmonie wichtiger als Recht zu haben. (Verträglichkeit)"
-                />
-                <ScaleInput
-                  name="neuroticism"
-                  value={userData.neuroticism}
-                  label="Streitigkeiten beschäftigen mich lange. (Neurotizismus)"
-                />
-              </div>
-            </div>
-          )}
-
-          {step === 6 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Werte & Einstellungen</h2>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Was sind deine 3 wichtigsten Werte in einer Beziehung?</label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    {RELATIONSHIP_VALUES.map((value) => (
-                      <label key={value} className="flex items-center space-x-2 p-3 border border-lavender/30 rounded-lg hover:bg-lavender/5">
-                        <input
-                          type="checkbox"
-                          checked={userData.relationshipValues.includes(value)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              handleMultiSelect('relationshipValues', [...userData.relationshipValues, value].slice(0, 3) as RelationshipValue[]);
-                            } else {
-                              handleMultiSelect('relationshipValues', userData.relationshipValues.filter(v => v !== value));
-                            }
-                          }}
-                          className="form-checkbox text-lavender"
-                          disabled={!userData.relationshipValues.includes(value) && userData.relationshipValues.length >= 3}
-                        />
-                        <span>{value}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Was bedeutet Treue für dich?</label>
-                  <textarea
-                    name="fidelityMeaning"
-                    value={userData.fidelityMeaning}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1 h-20"
-                    placeholder="Beschreibe deine Vorstellung von Treue..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-midnight mb-4">Ordne nach Wichtigkeit (1-5):</label>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-midnight/80">Vertrauen</label>
-                      <div className="flex items-center gap-4">
-                        <input
-                          type="range"
-                          min="1"
-                          max="5"
-                          value={userData.valuesPriority.vertrauen}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            valuesPriority: {
-                              ...prev.valuesPriority,
-                              vertrauen: parseInt(e.target.value)
-                            }
-                          }))}
-                          className="w-full h-2 bg-lavender/20 rounded-lg appearance-none cursor-pointer accent-lavender"
-                        />
-                        <span className="text-sm font-medium text-navlink">{userData.valuesPriority.vertrauen}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-midnight/80">Leidenschaft</label>
-                      <div className="flex items-center gap-4">
-                        <input
-                          type="range"
-                          min="1"
-                          max="5"
-                          value={userData.valuesPriority.leidenschaft}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            valuesPriority: {
-                              ...prev.valuesPriority,
-                              leidenschaft: parseInt(e.target.value)
-                            }
-                          }))}
-                          className="w-full h-2 bg-lavender/20 rounded-lg appearance-none cursor-pointer accent-lavender"
-                        />
-                        <span className="text-sm font-medium text-navlink">{userData.valuesPriority.leidenschaft}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-midnight/80">Unabhängigkeit</label>
-                      <div className="flex items-center gap-4">
-                        <input
-                          type="range"
-                          min="1"
-                          max="5"
-                          value={userData.valuesPriority.unabhaengigkeit}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            valuesPriority: {
-                              ...prev.valuesPriority,
-                              unabhaengigkeit: parseInt(e.target.value)
-                            }
-                          }))}
-                          className="w-full h-2 bg-lavender/20 rounded-lg appearance-none cursor-pointer accent-lavender"
-                        />
-                        <span className="text-sm font-medium text-navlink">{userData.valuesPriority.unabhaengigkeit}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-midnight/80">Humor</label>
-                      <div className="flex items-center gap-4">
-                        <input
-                          type="range"
-                          min="1"
-                          max="5"
-                          value={userData.valuesPriority.humor}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            valuesPriority: {
-                              ...prev.valuesPriority,
-                              humor: parseInt(e.target.value)
-                            }
-                          }))}
-                          className="w-full h-2 bg-lavender/20 rounded-lg appearance-none cursor-pointer accent-lavender"
-                        />
-                        <span className="text-sm font-medium text-navlink">{userData.valuesPriority.humor}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-midnight/80">Treue</label>
-                      <div className="flex items-center gap-4">
-                        <input
-                          type="range"
-                          min="1"
-                          max="5"
-                          value={userData.valuesPriority.treue}
-                          onChange={(e) => setUserData(prev => ({
-                            ...prev,
-                            valuesPriority: {
-                              ...prev.valuesPriority,
-                              treue: parseInt(e.target.value)
-                            }
-                          }))}
-                          className="w-full h-2 bg-lavender/20 rounded-lg appearance-none cursor-pointer accent-lavender"
-                        />
-                        <span className="text-sm font-medium text-navlink">{userData.valuesPriority.treue}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 7 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Kindheit & Prägung</h2>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Wie haben deine Eltern oder deren Beziehung dich geprägt?</label>
-                  <textarea
-                    name="parentalInfluence"
-                    value={userData.parentalInfluence}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1 h-20"
-                    placeholder="Beschreibe den Einfluss deiner Eltern..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Gab es ein Erlebnis, das dein Vertrauen in Beziehungen beeinflusst hat?</label>
-                  <textarea
-                    name="trustExperience"
-                    value={userData.trustExperience}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1 h-20"
-                    placeholder="Beschreibe das Erlebnis..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Erkennst du Muster deiner Eltern in deinem eigenen Verhalten wieder?</label>
-                  <textarea
-                    name="parentalPatterns"
-                    value={userData.parentalPatterns}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1 h-20"
-                    placeholder="Beschreibe die Muster..."
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 8 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Optionale Features</h2>
               <div className="space-y-4">
-                <div className="bg-lavender/5 p-4 rounded-xl space-y-2">
-                  <div className="flex items-start space-x-4">
-                    <div className="text-2xl">📱</div>
-                    <div>
-                      <h3 className="text-base font-semibold text-navlink">WhatsApp-Import</h3>
-                      <p className="text-xs text-midnight/60 mt-1">
-                        Chatverläufe können helfen, Kommunikationsmuster und Konfliktdynamiken objektiv zu analysieren.
-                      </p>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <ScaleInput
+                    name="tryNewThings"
+                    value={userData.tryNewThings}
+                    label="Ich liebe es, Neues auszuprobieren"
+                    minLabel="Trifft gar nicht zu"
+                    maxLabel="Trifft voll zu"
+                    icon={<Star className="w-5 h-5 text-lavender" />}
+                  />
+
+                  <ScaleInput
+                    name="socialEnergy"
+                    value={userData.socialEnergy}
+                    label="Zeit mit anderen Menschen gibt mir Energie"
+                    minLabel="Eher nicht"
+                    maxLabel="Absolut"
+                    icon={<Heart className="w-5 h-5 text-lavender" />}
+                  />
+
+                  <ScaleInput
+                    name="planAhead"
+                    value={userData.planAhead}
+                    label="Ich plane gerne im Voraus"
+                    minLabel="Spontan ist besser"
+                    maxLabel="Plane gerne"
+                    icon={<Settings className="w-5 h-5 text-lavender" />}
+                  />
+
+                  <ScaleInput
+                    name="harmonyOriented"
+                    value={userData.harmonyOriented}
+                    label="Harmonie ist mir wichtig"
+                    minLabel="Nicht so wichtig"
+                    maxLabel="Sehr wichtig"
+                    icon={<MessageCircle className="w-5 h-5 text-lavender" />}
+                  />
+
+                  <ScaleInput
+                    name="emotionalDepth"
+                    value={userData.emotionalDepth}
+                    label="Ich denke viel über Gefühle nach"
+                    minLabel="Eher selten"
+                    maxLabel="Sehr oft"
+                    icon={<Heart className="w-5 h-5 text-lavender" />}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Schritt 3 */}
+          {step === 3 && (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-navlink">❤️ Deine Beziehung</h2>
+                <p className="text-sm sm:text-base text-midnight/80">Erzähl uns von eurer gemeinsamen Zeit</p>
+              </div>
+
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-xl p-4 sm:p-5 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-midnight">Wann hat eure Beziehung angefangen?</label>
+                    <input
+                      type="date"
+                      name="relationshipStartDate"
+                      value={userData.relationshipStartDate}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                    <p className="text-xs text-midnight/60">Dieser besondere Tag hilft uns, eure Meilensteine zu feiern</p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-midnight">
-                      Möchtest du relevante Chatverläufe mit deinem Partner importieren?
-                    </label>
-                    <div className="flex items-center space-x-4">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name="whatsappImport"
-                          checked={userData.whatsappImport === true}
-                          onChange={() => setUserData(prev => ({ ...prev, whatsappImport: true }))}
-                          className="form-radio text-lavender"
-                        />
-                        <span>Ja</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name="whatsappImport"
-                          checked={userData.whatsappImport === false}
-                          onChange={() => setUserData(prev => ({ ...prev, whatsappImport: false }))}
-                          className="form-radio text-lavender"
-                        />
-                        <span>Nein</span>
-                      </label>
-                    </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-midnight">Wie verbringt ihr am liebsten Zeit zusammen?</label>
+                    <select
+                      name="timeTogetherPref"
+                      value={userData.timeTogetherPref}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
+                    >
+                      <option value="">Bitte wählen...</option>
+                      <option value="activities">Gemeinsame Aktivitäten & Abenteuer</option>
+                      <option value="talks">Tiefe Gespräche führen</option>
+                      <option value="relaxing">Entspannt zusammen sein</option>
+                      <option value="hobbies">Gemeinsame Hobbies teilen</option>
+                      <option value="mixed">Eine Mischung aus allem</option>
+                    </select>
                   </div>
-                  <p className="text-xs italic text-midnight/60">
-                    Nur mit Zustimmung deines Partners. Dieser Schritt ist optional.
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-midnight">Was bedeutet Nähe für dich?</label>
+                    <select
+                      name="closenessStyle"
+                      value={userData.closenessStyle}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
+                    >
+                      <option value="">Bitte wählen...</option>
+                      <option value="emotional">Emotionale Verbundenheit & tiefe Gespräche</option>
+                      <option value="physical">Körperliche Nähe & Zärtlichkeit</option>
+                      <option value="activities">Gemeinsame Erlebnisse teilen</option>
+                      <option value="support">Füreinander da sein & sich unterstützen</option>
+                      <option value="space">Nähe mit Freiraum für beide</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="bg-lavender/5 rounded-xl p-4">
+                  <p className="text-xs text-midnight/70 flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-lavender" />
+                    Jede Beziehung ist einzigartig - wir helfen euch, eure Stärken zu entdecken!
                   </p>
                 </div>
-                <div className="bg-lavender/5 p-4 rounded-xl space-y-2">
-                  <div className="flex items-start space-x-4">
-                    <div className="text-2xl">🔮</div>
-                    <div>
-                      <h3 className="text-base font-semibold text-navlink">Astrologie</h3>
-                      <p className="text-xs text-midnight/60 mt-1">
-                        Astrologische Hinweise können ergänzend genutzt werden, um Beziehungstypen und Timing-Einflüsse intuitiv zu reflektieren.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-midnight">
-                      Möchtest du astrologische Informationen in deinem Coaching berücksichtigen lassen?
+              </div>
+            </div>
+          )}
+
+          {/* Schritt 4 */}
+          {step === 4 && (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-navlink">💭 Kommunikation</h2>
+                <p className="text-sm sm:text-base text-midnight/80">Der Schlüssel zu einer starken Beziehung</p>
+              </div>
+
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-xl p-4 sm:p-5 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-midnight">
+                      Wie zeigst du deinem Partner, dass du ihn/sie verstehst?
+                      <span className="text-xs text-midnight/60 block mt-1">
+                        Deine persönliche Art der Anteilnahme
+                      </span>
                     </label>
-                    <div className="flex items-center space-x-4">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name="astrology"
-                          checked={userData.astrology === true}
-                          onChange={() => setUserData(prev => ({ ...prev, astrology: true }))}
-                          className="form-radio text-lavender"
-                        />
-                        <span>Ja</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name="astrology"
-                          checked={userData.astrology === false}
-                          onChange={() => setUserData(prev => ({ ...prev, astrology: false }))}
-                          className="form-radio text-lavender"
-                        />
-                        <span>Nein</span>
-                      </label>
+                    <select
+                      name="showUnderstanding"
+                      value={userData.showUnderstanding}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
+                    >
+                      <option value="">Bitte wählen...</option>
+                      <option value="listen">Aktiv zuhören und nachfragen</option>
+                      <option value="comfort">Trösten und in den Arm nehmen</option>
+                      <option value="support">Praktische Unterstützung anbieten</option>
+                      <option value="space">Raum für Gefühle geben</option>
+                      <option value="share">Eigene ähnliche Erfahrungen teilen</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-midnight">
+                      Was hilft dir am besten bei unterschiedlichen Meinungen?
+                      <span className="text-xs text-midnight/60 block mt-1">
+                        Dein Weg zu gemeinsamen Lösungen
+                      </span>
+                    </label>
+                    <select
+                      name="resolveConflicts"
+                      value={userData.resolveConflicts}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
+                    >
+                      <option value="">Bitte wählen...</option>
+                      <option value="talk">Ruhig darüber sprechen</option>
+                      <option value="compromise">Nach Kompromissen suchen</option>
+                      <option value="pause">Eine Pause nehmen und später besprechen</option>
+                      <option value="understand">Versuchen, den anderen zu verstehen</option>
+                      <option value="creative">Kreative Lösungen finden</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="bg-lavender/5 rounded-xl p-4">
+                  <p className="text-xs text-midnight/70 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-lavender" />
+                    Toll! Offene Kommunikation ist der Weg zu mehr Verbundenheit.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Schritt 5 - Werte */}
+          {step === 5 && (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-navlink">⭐ Eure Beziehungswerte</h2>
+                <p className="text-sm sm:text-base text-midnight/80">Was macht eure Beziehung besonders?</p>
+              </div>
+
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-xl p-4 sm:p-5 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium text-midnight">
+                      Wähle 3 Werte, die eure Beziehung besonders auszeichnen
+                      <span className="text-xs text-midnight/60 block mt-1">
+                        Jeder dieser Werte ist wichtig - wähle die, die euch am besten beschreiben
+                      </span>
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        { value: 'Vertrauen', icon: '🤝', description: 'Wir können uns blind aufeinander verlassen' },
+                        { value: 'Ehrlichkeit', icon: '💫', description: 'Wir sind immer offen und ehrlich zueinander' },
+                        { value: 'Kommunikation', icon: '💭', description: 'Wir sprechen über alles, was uns bewegt' },
+                        { value: 'Respekt', icon: '🙏', description: 'Wir schätzen unsere Unterschiede' },
+                        { value: 'Leidenschaft', icon: '❤️', description: 'Unsere Liebe ist voller Energie' },
+                        { value: 'Unabhängigkeit', icon: '🦋', description: 'Wir geben uns Freiraum zur Entfaltung' },
+                        { value: 'Humor', icon: '😊', description: 'Wir lachen viel zusammen' },
+                        { value: 'Treue', icon: '💝', description: 'Wir stehen füreinander ein' }
+                      ].map(({ value, icon, description }) => (
+                        <label 
+                          key={value} 
+                          className={`flex items-start p-4 border rounded-xl cursor-pointer transition-all ${
+                            userData.relationshipValues.includes(value as RelationshipValue)
+                              ? 'border-lavender bg-lavender/5 text-navlink'
+                              : 'border-lavender/30 hover:bg-lavender/5'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={userData.relationshipValues.includes(value as RelationshipValue)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                handleMultiSelect('relationshipValues', [...userData.relationshipValues, value as RelationshipValue].slice(0, 3));
+                              } else {
+                                handleMultiSelect('relationshipValues', userData.relationshipValues.filter(v => v !== value));
+                              }
+                            }}
+                            className="form-checkbox text-lavender mr-3 mt-1"
+                            disabled={!userData.relationshipValues.includes(value as RelationshipValue) && userData.relationshipValues.length >= 3}
+                          />
+                          <div>
+                            <div className="flex items-center gap-2 font-medium">
+                              <span>{icon}</span>
+                              <span>{value}</span>
+                            </div>
+                            <p className="text-xs text-midnight/60 mt-1">{description}</p>
+                          </div>
+                        </label>
+                      ))}
                     </div>
                   </div>
-                  {userData.astrology && (
-                    <div className="space-y-2 mt-4 p-4 bg-white rounded-xl border border-lavender/30">
-                      <div>
-                        <label className="block text-sm font-medium text-midnight">Geburtsdatum</label>
-                        <input
-                          type="date"
-                          name="birthDate"
-                          value={userData.birthDate}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-midnight">Geburtszeit</label>
-                        <input
-                          type="time"
-                          name="birthTime"
-                          value={userData.birthTime}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                        />
-                      </div>
-                      <div className="relative">
-                        <label className="block text-sm font-medium text-midnight">Geburtsort</label>
-                        <input
-                          type="text"
-                          name="birthPlace"
-                          value={userData.birthPlace}
-                          onChange={handleBirthPlaceInput}
-                          autoComplete="off"
-                          className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                          placeholder="Geburtsort"
-                        />
-                        {birthPlaceSuggestions.length > 0 && (
-                          <ul className="absolute z-10 left-0 right-0 bg-white border border-lavender/30 rounded-xl mt-1 max-h-48 overflow-y-auto shadow-lg">
-                            {birthPlaceSuggestions.map((suggestion, idx) => (
-                              <li
-                                key={idx}
-                                className="px-4 py-2 cursor-pointer hover:bg-lavender/10 text-midnight text-sm"
-                                onClick={() => handleBirthPlaceSelect(suggestion)}
-                              >
-                                {suggestion}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
+
+                  {userData.relationshipValues.length > 0 && (
+                    <div className="space-y-4 mt-6">
+                      <label className="block text-sm font-medium text-midnight">
+                        Woran möchtet ihr gemeinsam wachsen?
+                        <span className="text-midnight/60 text-xs block mt-1">
+                          Jede Beziehung entwickelt sich stetig weiter - das ist etwas Positives!
+                        </span>
+                      </label>
+                      <textarea
+                        name="growthDescription"
+                        value={userData.growthDescription || ''}
+                        onChange={handleInputChange}
+                        placeholder="z.B.: Wir möchten mehr Zeit für tiefe Gespräche finden und uns gegenseitig noch besser zuhören..."
+                        className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm h-24"
+                      />
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          )}
 
-          {step === 9 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Fast geschafft! 🎉</h2>
-              <p className="text-sm text-midnight/80">
-                Erstelle dein Konto, um deine Fortschritte zu speichern und mit dem Coaching zu beginnen.
-              </p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-midnight">E-Mail Adresse</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={userData.email}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                    placeholder="deine@email.de"
-                    autoFocus
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-midnight">Passwort</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={userData.password}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:border-transparent focus:z-30 text-sm mt-1"
-                    placeholder="Mindestens 8 Zeichen"
-                    minLength={8}
-                  />
-                  <p className="text-xs text-midnight/60 mt-1">
-                    Mindestens 8 Zeichen
+                <div className="bg-lavender/5 rounded-xl p-4">
+                  <p className="text-xs text-midnight/70 flex items-center gap-2">
+                    <Star className="w-4 h-4 text-lavender" />
+                    Gemeinsames Wachstum stärkt eure Verbindung - schön, dass ihr diesen Weg zusammen geht!
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {step === 10 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Partner einladen 👫</h2>
-              <div className="bg-lavender/5 p-4 rounded-xl space-y-2">
-                <label className="block text-sm font-medium text-midnight mb-2">Hast du einen Partnercode? (optional)</label>
-                <input
-                  type="text"
-                  placeholder="Partnercode"
-                  value={codeInput}
-                  onChange={e => setCodeInput(e.target.value)}
-                  className="p-2 rounded-lg border border-lavender/30 w-full text-center text-sm"
-                  maxLength={20}
-                />
-                <p className="text-xs text-midnight/60 mt-1">Du kannst den Code auch später im Dashboard eingeben.</p>
+          {/* Schritt 6 - Features */}
+          {step === 6 && (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-navlink">✨ Zusätzliche Features</h2>
+                <p className="text-sm sm:text-base text-midnight/80">Entdecke mehr Möglichkeiten mit Lumo</p>
               </div>
-              <div className="bg-lavender/5 p-4 rounded-xl space-y-2 mt-2">
-                <label className="block text-sm font-medium text-midnight">Dein persönlicher Einladungscode:</label>
-                <div className="flex items-center">
-                  <input
-                    type="text"
-                    value={inviteCode}
-                    readOnly
-                    className="w-full p-2 border border-lavender/30 rounded-l-xl bg-gray-50 text-sm font-mono tracking-wider text-navlink"
-                  />
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(inviteCode);
-                      setCodeCopied(true);
-                      setTimeout(() => setCodeCopied(false), 2000);
-                    }}
-                    className="px-4 py-2 bg-lavender text-white rounded-r-xl hover:bg-lavender/80 transition-colors flex items-center justify-center"
-                  >
-                    {codeCopied ? <CheckCircle2 size={20} /> : <Copy size={20} />}
-                  </button>
+
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-xl p-4 sm:p-5 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-4 p-3 sm:p-4 bg-green-50 rounded-xl">
+                      <div className="flex-shrink-0">
+                        <MessageCircle className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-green-900">WhatsApp Chat-Import</h3>
+                        <p className="text-xs text-green-700 mt-1">
+                          Importiere eure WhatsApp-Chats für tiefere Einblicke in eure Kommunikation
+                        </p>
+                        <div className="mt-3 flex items-center space-x-4">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="whatsappImport"
+                              checked={userData.whatsappImport === true}
+                              onChange={() => setUserData(prev => ({ ...prev, whatsappImport: true }))}
+                              className="form-radio text-green-600"
+                            />
+                            <span className="text-sm text-green-900">Ja, interessiert mich</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="whatsappImport"
+                              checked={userData.whatsappImport === false}
+                              onChange={() => setUserData(prev => ({ ...prev, whatsappImport: false }))}
+                              className="form-radio text-green-600"
+                            />
+                            <span className="text-sm text-green-900">Nein, danke</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-4 p-3 sm:p-4 bg-purple-50 rounded-xl">
+                      <div className="flex-shrink-0">
+                        <Star className="w-6 h-6 text-purple-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-purple-900">Astrologie-Features</h3>
+                        <p className="text-xs text-purple-700 mt-1">
+                          Entdecke astrologische Einblicke in eure Beziehungsdynamik
+                        </p>
+                        <div className="mt-3 flex items-center space-x-4">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="astrology"
+                              checked={userData.astrology === true}
+                              onChange={() => setUserData(prev => ({ ...prev, astrology: true }))}
+                              className="form-radio text-lavender"
+                            />
+                            <span className="text-sm text-purple-900">Ja, interessiert mich</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="astrology"
+                              checked={userData.astrology === false}
+                              onChange={() => setUserData(prev => ({ ...prev, astrology: false }))}
+                              className="form-radio text-lavender"
+                            />
+                            <span className="text-sm text-purple-900">Nein, danke</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                {codeCopied && (
-                  <p className="text-xs text-green-600">Code kopiert!</p>
-                )}
-                <div className="space-y-2 mt-2">
-                  <h3 className="text-sm font-medium text-navlink">So funktioniert's:</h3>
-                  <ol className="list-decimal list-inside space-y-1 text-midnight/80 text-xs">
-                    <li>Teile diesen Code mit deinem Partner</li>
-                    <li>Dein Partner erstellt einen Account bei Lumo</li>
-                    <li>Er/sie gibt den Code im Dashboard ein</li>
-                    <li>Ihr seid verbunden und könnt alle Lumo-Features nutzen!</li>
-                  </ol>
+              </div>
+            </div>
+          )}
+
+          {/* Schritt 7 */}
+          {step === 7 && (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-navlink">🔐 Dein Account</h2>
+                <p className="text-sm sm:text-base text-midnight/80">Sichere dir Zugang zu allen Features</p>
+              </div>
+
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-xl p-4 sm:p-5 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-midnight">E-Mail-Adresse</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={userData.email}
+                        onChange={handleInputChange}
+                        placeholder="deine@email.de"
+                        className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-midnight">Passwort</label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={userData.password}
+                        onChange={handleInputChange}
+                        placeholder="Min. 8 Zeichen"
+                        className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
+                      />
+                      <p className="text-xs text-midnight/60">
+                        Mindestens 8 Zeichen für ein sicheres Passwort
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-blue-50 p-2 rounded-lg border border-blue-100 mt-2">
-                  <p className="text-blue-700 text-xs">
-                    <span className="font-medium">Hinweis:</span> Bis dein Partner beigetreten ist, sind einige Features nur eingeschränkt verfügbar.
+
+                <div className="bg-lavender/5 rounded-xl p-4">
+                  <p className="text-xs text-midnight/70 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-lavender" />
+                    Fast geschafft! Im nächsten Schritt kannst du deinen Partner einladen.
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {step === totalSteps && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-navlink">Fertig! 🎉</h2>
-              <p className="text-sm text-midnight/80">
-                Mega! Mit deinen Antworten kann Lumo jetzt noch gezielter analysieren, Muster erkennen und euch als Paar auf ein neues Level bringen.
-              </p>
+          {/* Schritt 8 - Partner */}
+          {step === 8 && (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-navlink">💑 Verbindet eure Profile</h2>
+                <p className="text-sm sm:text-base text-midnight/80">Startet eure gemeinsame Reise mit Lumo</p>
+              </div>
+
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-xl p-4 sm:p-5 space-y-4 sm:space-y-6 shadow-sm">
+                  <div className="space-y-4">
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-xl text-center">
+                      <h3 className="text-sm font-medium text-blue-900">Dein persönlicher Einladungscode</h3>
+                      <div className="mt-3 flex items-center justify-center space-x-2">
+                        <input
+                          ref={codeRef}
+                          type="text"
+                          value={inviteCode}
+                          readOnly
+                          className="bg-white p-2 rounded-lg border border-blue-200 w-48 text-center text-sm"
+                        />
+                        <button
+                          onClick={copyCodeToClipboard}
+                          className="p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          {codeCopied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-blue-700 mt-2">
+                        Teile diesen Code mit deinem Partner
+                      </p>
+                    </div>
+
+                    <div className="text-center space-y-2">
+                      <p className="text-sm text-midnight/80">
+                        Sobald dein Partner beigetreten ist, könnt ihr gemeinsam:
+                      </p>
+                      <ul className="text-xs text-midnight/70 space-y-1">
+                        <li>• Eure Beziehung besser verstehen</li>
+                        <li>• Gemeinsame Ziele setzen</li>
+                        <li>• An eurer Kommunikation arbeiten</li>
+                        <li>• Euch gegenseitig unterstützen</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-lavender/5 rounded-xl p-4">
+                  <p className="text-xs text-midnight/70 flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-lavender" />
+                    Toll, dass ihr diesen Weg gemeinsam geht!
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="flex justify-between items-center">
+        {/* Navigation Buttons */}
+        <div className="flex justify-between gap-3 mt-6">
           <button
             onClick={handleBack}
-            className="px-6 py-3 bg-white border border-lavender/30 text-navlink rounded-xl hover:bg-lavender/5 transition-colors font-medium flex items-center gap-2"
+            className="px-4 py-2 text-sm sm:text-base text-midnight/60 hover:text-midnight transition-colors"
           >
-            {step === 1 ? 'Abbrechen' : 'Zurück'}
+            Zurück
           </button>
           <button
             onClick={handleNext}
             disabled={isNextDisabled()}
-            className={`px-8 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
+            className={`px-6 py-2 rounded-xl text-sm sm:text-base font-medium transition-colors ${
               isNextDisabled()
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-navlink to-lavender text-white hover:brightness-105 transform hover:-translate-y-0.5'
+                ? 'bg-lavender/30 text-white cursor-not-allowed'
+                : 'bg-lavender text-white hover:bg-lavender/80'
             }`}
           >
             {step === totalSteps ? 'Fertig' : 'Weiter'}
