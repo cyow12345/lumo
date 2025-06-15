@@ -21,7 +21,7 @@ import Profile from './components/Profile';
 import SurveyContainer from './components/SurveyContainer';
 import AssessmentList from './components/AssessmentList';
 import OnboardingFlow from './components/OnboardingFlow';
-import { Home, MessageCircleHeart, SmilePlus, BarChart, Notebook, CheckSquare, Trophy, Settings as SettingsIcon, LogOut, CheckCircle2, AlertCircle, Heart, Calendar, Clock, Brain, BookOpen, User, Users, ClipboardList } from 'lucide-react';
+import { Home, MessageCircleHeart, SmilePlus, BarChart, Notebook, CheckSquare, Trophy, Settings as SettingsIcon, LogOut, Heart, Calendar, Clock, Brain, BookOpen, User, Users, ClipboardList } from 'lucide-react';
 // Verwende den public-Pfad
 const lumoLogo = '/lumo_logo.png';
 
@@ -39,79 +39,21 @@ interface Session {
 function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [session, setSession] = useState<Session | null>(null);
-  const [showAuthForm, setShowAuthForm] = useState(true);
+  const [showAuthForm, setShowAuthForm] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showLoginOnboarding, setShowLoginOnboarding] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<string>('Prüfe Verbindung...');
-  
-  // Assessment-State
-  const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
-  const [showSurvey, setShowSurvey] = useState(false);
-  
-  // Onboarding-State
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
-  
-  // Separater Zustand für das Login-Onboarding
-  const [showLoginOnboarding, setShowLoginOnboarding] = useState(false);
-
-  // Auth Initial Mode
-  const [authInitialMode, setAuthInitialMode] = useState<'login' | 'register'>('login');
-
-  // Auth-related state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const [partnerLinked, setPartnerLinked] = useState<boolean>(false);
-  const [partnerName, setPartnerName] = useState<string | null>(null);
-  const [daysTogether, setDaysTogether] = useState<number | null>(null);
+  const [authInitialMode, setAuthInitialMode] = useState<'login' | 'register'>('login');
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
+  const [partnerLinked, setPartnerLinked] = useState(false);
   const [relationshipStartDate, setRelationshipStartDate] = useState<string | null>(null);
+  const [daysTogether, setDaysTogether] = useState<number>(0);
+  const [partnerName, setPartnerName] = useState<string>('');
   const [partnerId, setPartnerId] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Test der Supabase-Connection
-    const testSupabaseConnection = async () => {
-      try {
-        setConnectionStatus('Teste Verbindung zu Supabase...');
-        console.log('Starte Supabase-Verbindungstest');
-        
-        // Verwende die verbesserte checkSupabaseConnection-Funktion
-        const result = await checkSupabaseConnection();
-        
-        if (result.status === 'error') {
-          console.log('Supabase-Verbindungsfehler:', result.error);
-          setConnectionStatus(`❌ ${result.error}`);
-          
-          // Nicht mehr automatisch in den Gast-Modus wechseln
-          console.log('Verbindungsfehler - Gast-Modus muss manuell aktiviert werden');
-          return;
-        } else if (result.status === 'guest') {
-          console.log('Gast-Modus aktiv:', result.message);
-          setConnectionStatus('🤖 Gast-Modus aktiv - App läuft ohne Datenbank');
-          return;
-        }
-        
-        setConnectionStatus('✅ Verbindung zu Supabase erfolgreich');
-        console.log('Supabase Verbindung OK:', result.message);
-      } catch (error: any) {
-        console.error('Supabase-Verbindungsfehler vollständig:', error);
-        
-        if (error.message?.includes('Gast-Modus ist aktiv')) {
-          setConnectionStatus('🤖 Gast-Modus aktiv - App läuft ohne Datenbank');
-          return;
-        }
-        
-        // Nicht mehr automatisch in den Gast-Modus wechseln
-        if (error.message?.includes('Failed to fetch') || error.message?.includes('fetch')) {
-          setConnectionStatus(`❌ Fehler bei Supabase-Verbindung: Bitte manuell in den Gast-Modus wechseln.`);
-        } else {
-          setConnectionStatus(`❌ Fehler bei Supabase-Verbindung: ${error.message}`);
-        }
-      }
-    };
-    
-    testSupabaseConnection();
-  }, []);
 
   useEffect(() => {
     // Prüfe, ob ein aktiver Session existiert
@@ -396,28 +338,6 @@ function App() {
             <div className="mx-auto">
               <img src={lumoLogo} alt="Lumo Logo" className="w-64 h-64 mx-auto" />
             </div>
-
-          </div>
-          
-          {/* Verbindungsstatus anzeigen */}
-          <div className={`mb-6 p-4 rounded-xl text-sm ${connectionStatus.includes('✅') 
-            ? 'bg-green-50 text-green-700 border border-green-200' 
-            : connectionStatus.includes('❌') 
-              ? 'bg-red-50 text-red-700 border border-red-200' 
-              : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
-            {connectionStatus.includes('✅') ? (
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Verbindung zu Supabase erfolgreich</span>
-              </div>
-            ) : connectionStatus.includes('❌') ? (
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                <span>{connectionStatus.replace('❌ ', '')}</span>
-              </div>
-            ) : (
-              connectionStatus
-            )}
           </div>
           
           {authError && (
