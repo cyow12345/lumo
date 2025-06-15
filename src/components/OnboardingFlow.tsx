@@ -673,8 +673,6 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                     <select
                       name="show_understanding"
                       value={userData.show_understanding}
-                      name="showUnderstanding"
-                      value={userData.showUnderstanding}
                       onChange={handleInputChange}
                       className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
                     >
@@ -695,8 +693,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                       </span>
                     </label>
                     <select
-                      name="resolveConflicts"
-                      value={userData.resolveConflicts}
+                      name="resolve_conflicts"
+                      value={userData.resolve_conflicts}
                       onChange={handleInputChange}
                       className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
                     >
@@ -790,8 +788,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                         </span>
                       </label>
                       <textarea
-                        name="growthDescription"
-                        value={userData.growthDescription || ''}
+                        name="growth_description"
+                        value={userData.growth_description || ''}
                         onChange={handleInputChange}
                         placeholder="z.B.: Wir möchten mehr Zeit für tiefe Gespräche finden und uns gegenseitig noch besser zuhören..."
                         className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm h-24"
