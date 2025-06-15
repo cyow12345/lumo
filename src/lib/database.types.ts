@@ -17,7 +17,13 @@ export interface Database {
           name: string
           age: number
           gender: string
+          happy_moments: string | null
+          growth_description: string | null
           relationship_start_date: string | null
+          time_together_pref: string | null
+          closeness_style: string | null
+          show_understanding: string | null
+          resolve_conflicts: string | null
           evening_alone: string | null
           separation_anxiety: number | null
           attachment_style: string | null
@@ -43,6 +49,9 @@ export interface Database {
           birth_date: string | null
           birth_time: string | null
           birth_place: string | null
+          invite_code: string | null
+          partner_id: string | null
+          relationship_status: string | null
         }
         Insert: {
           id: string
@@ -51,7 +60,13 @@ export interface Database {
           name: string
           age: number
           gender: string
+          happy_moments?: string | null
+          growth_description?: string | null
           relationship_start_date?: string | null
+          time_together_pref?: string | null
+          closeness_style?: string | null
+          show_understanding?: string | null
+          resolve_conflicts?: string | null
           evening_alone?: string | null
           separation_anxiety?: number | null
           attachment_style?: string | null
@@ -77,6 +92,9 @@ export interface Database {
           birth_date?: string | null
           birth_time?: string | null
           birth_place?: string | null
+          invite_code?: string | null
+          partner_id?: string | null
+          relationship_status?: string | null
         }
         Update: {
           id?: string
@@ -85,7 +103,13 @@ export interface Database {
           name?: string
           age?: number
           gender?: string
+          happy_moments?: string | null
+          growth_description?: string | null
           relationship_start_date?: string | null
+          time_together_pref?: string | null
+          closeness_style?: string | null
+          show_understanding?: string | null
+          resolve_conflicts?: string | null
           evening_alone?: string | null
           separation_anxiety?: number | null
           attachment_style?: string | null
@@ -111,6 +135,9 @@ export interface Database {
           birth_date?: string | null
           birth_time?: string | null
           birth_place?: string | null
+          invite_code?: string | null
+          partner_id?: string | null
+          relationship_status?: string | null
         }
       }
     }

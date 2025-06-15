@@ -11,3 +11,4 @@ dist/
 # Sonstiges
 .env*
 .DS_Store
+.vercel

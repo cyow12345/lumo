@@ -8,6 +8,67 @@ interface OnboardingFlowProps {
   isLoginOnboarding?: boolean;
 }
 
+interface UserData {
+  // Schritt 1: Willkommen & Basics
+  name: string;
+  age: string;
+  gender: string;
+  happy_moments: string;
+  growth_description: string;
+  
+  // Schritt 2: Über dich
+  tryNewThings: number;
+  socialEnergy: number;
+  planAhead: number;
+  harmonyOriented: number;
+  emotionalDepth: number;
+  
+  // Schritt 3: Deine Beziehung
+  relationshipStartDate: string;
+  time_together_pref: string;
+  closeness_style: string;
+  
+  // Schritt 4: Kommunikation
+  show_understanding: string;
+  resolve_conflicts: string;
+  evening_alone: string;
+  separationStyle: string;
+  attachmentStyle: string;
+  addressingIssues: string;
+  emotionalExpression: string;
+  hurtResponse: string;
+  previousConflict: string;
+  emotionalConflicts: string;
+  criticismResponse: string;
+  
+  // Schritt 5: Werte & Persönlichkeit
+  openness: number;
+  extraversion: number;
+  conscientiousness: number;
+  agreeableness: number;
+  neuroticism: number;
+  relationshipValues: RelationshipValue[];
+  fidelityMeaning: string;
+  valuesPriority: any;
+  parentalInfluence: string;
+  trustExperience: string;
+  parentalPatterns: string;
+  
+  // Schritt 6: Features
+  whatsappImport: boolean;
+  astrology: boolean;
+  birthDate: string;
+  birthTime: string;
+  birthPlace: string;
+  
+  // Schritt 7: Account
+  email: string;
+  password: string;
+  
+  // Schritt 8: Partner
+  partnerCode: string;
+}
+
 type RelationshipValue = 'Vertrauen' | 'Ehrlichkeit' | 'Kommunikation' | 'Respekt' | 'Leidenschaft' | 'Unabhängigkeit' | 'Humor' | 'Treue';
 
 const RELATIONSHIP_VALUES: RelationshipValue[] = ['Vertrauen', 'Ehrlichkeit', 'Kommunikation', 'Respekt', 'Leidenschaft', 'Unabhängigkeit', 'Humor', 'Treue'];
@@ -22,52 +83,64 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
   const [birthPlaceSuggestions, setBirthPlaceSuggestions] = useState<string[]>([]);
   const birthPlaceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserData>({
     // Schritt 1: Willkommen & Basics
     name: '',
     age: '',
     gender: '',
-    happyMoments: '', // Neue positive Einstiegsfrage
-
+    happy_moments: '',
+    growth_description: '',
+    
     // Schritt 2: Über dich
-    tryNewThings: 1,      // "Ich liebe es, Neues auszuprobieren"
-    socialEnergy: 1,      // "Zeit mit anderen Menschen gibt mir Energie"
-    planAhead: 1,         // "Ich plane gerne im Voraus"
-    harmonyOriented: 1,   // "Harmonie ist mir wichtig"
-    emotionalDepth: 1,    // "Ich denke viel über Gefühle nach"
-
+    tryNewThings: 0,
+    socialEnergy: 0,
+    planAhead: 0,
+    harmonyOriented: 0,
+    emotionalDepth: 0,
+    
     // Schritt 3: Deine Beziehung
     relationshipStartDate: '',
-    timeTogetherPref: '', // "Wie verbringst du am liebsten Zeit mit deinem Partner?"
-    closenessStyle: '',   // "Was bedeutet Nähe für dich?"
+    time_together_pref: '',
+    closeness_style: '',
     
     // Schritt 4: Kommunikation
-    showUnderstanding: '', // "Wie zeigst du deinem Partner, dass du ihn/sie verstehst?"
-    resolveConflicts: '', // "Was hilft dir am besten, wenn ihr unterschiedlicher Meinung seid?"
+    show_understanding: '',
+    resolve_conflicts: '',
+    evening_alone: '',
+    separationStyle: '',
+    attachmentStyle: '',
+    addressingIssues: '',
+    emotionalExpression: '',
+    hurtResponse: '',
+    previousConflict: '',
+    emotionalConflicts: '',
+    criticismResponse: '',
     
-    // Schritt 5: Werte
-    relationshipValues: [] as RelationshipValue[],
-    valuesPriority: {
-      vertrauen: 1,
-      leidenschaft: 1,
-      unabhaengigkeit: 1,
-      humor: 1,
-      treue: 1
-    },
-
+    // Schritt 5: Werte & Persönlichkeit
+    openness: 0,
+    extraversion: 0,
+    conscientiousness: 0,
+    agreeableness: 0,
+    neuroticism: 0,
+    relationshipValues: [],
+    fidelityMeaning: '',
+    valuesPriority: {},
+    parentalInfluence: '',
+    trustExperience: '',
+    parentalPatterns: '',
+    
     // Schritt 6: Features
     whatsappImport: false,
     astrology: false,
     birthDate: '',
     birthTime: '',
     birthPlace: '',
-
+    
     // Schritt 7: Account
     email: '',
     password: '',
     
     // Schritt 8: Partner
-    partnerInviteSent: false,
     partnerCode: ''
   });
 
@@ -153,9 +226,14 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
             name: userData.name,
             age: Number(userData.age),
             gender: userData.gender,
+            happy_moments: userData.happy_moments,
+            growth_description: userData.growth_description,
             relationship_start_date: userData.relationshipStartDate || null,
-            relationship_status: userData.relationshipValues,
-            evening_alone: userData.eveningRoutine,
+            time_together_pref: userData.time_together_pref,
+            closeness_style: userData.closeness_style,
+            show_understanding: userData.show_understanding,
+            resolve_conflicts: userData.resolve_conflicts,
+            evening_alone: userData.evening_alone,
             separation_anxiety: userData.separationStyle,
             attachment_style: userData.attachmentStyle,
             addressing_issues: userData.addressingIssues,
@@ -265,11 +343,11 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                userData.emotionalDepth === 0;
       case 3: // Deine Beziehung
         return !userData.relationshipStartDate || 
-               !userData.timeTogetherPref || 
-               !userData.closenessStyle;
+               !userData.time_together_pref || 
+               !userData.closeness_style;
       case 4: // Kommunikation
-        return !userData.showUnderstanding || 
-               !userData.resolveConflicts;
+        return !userData.show_understanding || 
+               !userData.resolve_conflicts;
       case 5: // Werte
         return userData.relationshipValues.length === 0;
       case 6: // Features
@@ -430,8 +508,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                     </span>
                   </label>
                   <textarea
-                    name="happyMoments"
-                    value={userData.happyMoments}
+                    name="happy_moments"
+                    value={userData.happy_moments}
                     onChange={handleInputChange}
                     placeholder="z.B. gemeinsames Lachen, tiefe Gespräche, spontane Überraschungen..."
                     className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm h-24"
@@ -533,8 +611,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-midnight">Wie verbringt ihr am liebsten Zeit zusammen?</label>
                     <select
-                      name="timeTogetherPref"
-                      value={userData.timeTogetherPref}
+                      name="time_together_pref"
+                      value={userData.time_together_pref}
                       onChange={handleInputChange}
                       className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
                     >
@@ -550,8 +628,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-midnight">Was bedeutet Nähe für dich?</label>
                     <select
-                      name="closenessStyle"
-                      value={userData.closenessStyle}
+                      name="closeness_style"
+                      value={userData.closeness_style}
                       onChange={handleInputChange}
                       className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
                     >
@@ -593,6 +671,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                       </span>
                     </label>
                     <select
+                      name="show_understanding"
+                      value={userData.show_understanding}
                       name="showUnderstanding"
                       value={userData.showUnderstanding}
                       onChange={handleInputChange}
