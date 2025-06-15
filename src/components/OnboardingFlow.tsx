@@ -154,7 +154,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
             age: Number(userData.age),
             gender: userData.gender,
             relationship_start_date: userData.relationshipStartDate || null,
-            relationship_status: userData.relationshipStatus,
+            relationship_status: userData.relationshipValues,
             evening_alone: userData.eveningAlone,
             separation_anxiety: userData.separationAnxiety,
             attachment_style: userData.attachmentStyle,
