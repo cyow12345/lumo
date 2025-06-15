@@ -349,7 +349,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl px-8 pt-16 pb-8 max-w-xl w-full shadow-xl relative animate-fadeIn z-20">
+      <div className="bg-white rounded-2xl px-12 pt-16 pb-8 max-w-4xl w-full shadow-xl relative animate-fadeIn z-20">
         {/* Logo */}
         <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
           <img src="/lumo_logo.png" alt="Lumo Logo" className="w-24 h-24" />
@@ -367,7 +367,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
             />
           </div>
         </div>
-        <div className="mb-8 overflow-y-auto" style={{ maxHeight: '60vh' }}>
+        <div className="mb-8 overflow-y-auto" style={{ maxHeight: '70vh' }}>
           {step === 1 && (
             <div className="space-y-3">
               <h2 className="text-lg font-bold text-navlink">Persönliche Informationen</h2>

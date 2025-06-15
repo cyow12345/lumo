@@ -162,7 +162,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
   }, [userId]);
 
   useEffect(() => {
-    document.title = 'Lumo – KI-Coach für echte Beziehungstiefe';
+    document.title = 'Lumo - liest zwischen den Zeilen, damit ihr euch wirklich hört!';
   }, []);
 
   const copyCodeToClipboard = () => {

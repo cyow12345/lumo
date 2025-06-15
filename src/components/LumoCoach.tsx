@@ -201,7 +201,7 @@ const LumoCoach: React.FC<LumoCoachProps> = ({ userId, userName, partnerName, pa
   if (partnerLinked === false) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[40vh] p-8">
-        <img src="/lumo_logo.png" alt="Lumo Coach" className="w-16 h-16 mb-4" />
+        <img src="/lumo_logo.png" alt="Lumo Coach" className="w-32 h-32 mb-4" />
         <div className="text-lg font-semibold text-navlink mb-2">
           Hallo {userFirstName || userName || 'Gast'}
         </div>

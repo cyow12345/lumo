@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import MoodTracker from './components/MoodTracker';
 import Journal from './components/Journal';
@@ -370,8 +372,8 @@ function App() {
       <div className="flex flex-col font-sans items-center justify-center min-h-screen bg-gradient-to-br from-navlink/20 to-lavender/30 py-12">
         {/* Onboarding Overlay */}
         {(showOnboarding || showLoginOnboarding) && (
-          <div className="fixed inset-0 bg-gradient-to-br from-navlink/50 to-lavender/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 shadow-lg animate-fadeIn">
-            <div className="relative max-w-4xl w-full mx-auto">
+          <div className="fixed inset-0 bg-gradient-to-br from-navlink/50 to-lavender/50 backdrop-blur-sm flex items-center justify-center z-50 p-8 shadow-lg animate-fadeIn">
+            <div className="relative max-w-6xl w-full mx-auto bg-white rounded-2xl p-8">
               <OnboardingFlow 
                 onComplete={(userData) => {
                   if (showLoginOnboarding) {
@@ -391,12 +393,10 @@ function App() {
         
         <div className="bg-[#f7f2ff] p-10 rounded-3xl shadow-lg border border-lavender/10 max-w-md w-full mb-10">
           <div className="text-center mb-8">
-            <div className="mx-auto mb-6">
-              <img src={lumoLogo} alt="Lumo Logo" className="w-24 h-24 mx-auto" />
+            <div className="mx-auto">
+              <img src={lumoLogo} alt="Lumo Logo" className="w-64 h-64 mx-auto" />
             </div>
-            <h1 className="text-4xl font-bold mb-3 text-navlink bg-clip-text text-transparent bg-gradient-to-r from-navlink to-lavender">Lumo</h1>
-            <p className="text-midnight/70 font-medium mb-1">liest zwischen den Zeilen,</p>
-            <p className="text-midnight/70 font-medium">damit ihr euch wirklich hört</p>
+
           </div>
           
           {/* Verbindungsstatus anzeigen */}
@@ -563,8 +563,8 @@ function App() {
       <main className="flex-1 p-4 sm:p-8 space-y-6 sm:ml-60 pt-16 sm:pt-0">
         {/* Onboarding Overlay */}
         {(showOnboarding || showLoginOnboarding) && (
-          <div className="fixed inset-0 bg-gradient-to-br from-navlink/50 to-lavender/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 shadow-lg animate-fadeIn">
-            <div className="relative max-w-4xl w-full mx-auto">
+          <div className="fixed inset-0 bg-gradient-to-br from-navlink/50 to-lavender/50 backdrop-blur-sm flex items-center justify-center z-50 p-8 shadow-lg animate-fadeIn">
+            <div className="relative max-w-6xl w-full mx-auto bg-white rounded-2xl p-8">
               <OnboardingFlow 
                 onComplete={(userData) => {
                   if (showLoginOnboarding) {
