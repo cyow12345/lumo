@@ -314,8 +314,8 @@ function App() {
       <div className="flex flex-col font-sans items-center justify-center min-h-screen bg-gradient-to-br from-navlink/20 to-lavender/30 py-12">
         {/* Onboarding Overlay */}
         {(showOnboarding || showLoginOnboarding) && (
-          <div className="fixed inset-0 bg-[#f7f2ff]/95 backdrop-blur-md flex items-center justify-center z-50 p-4 md:p-8">
-            <div className="relative max-w-6xl w-full mx-auto bg-white rounded-2xl p-6 md:p-8 shadow-xl">
+          <div className="fixed inset-0 bg-gradient-to-br from-navlink/30 to-lavender/30 backdrop-blur-lg flex items-center justify-center z-50 p-8 animate-fadeIn">
+            <div className="relative max-w-6xl w-full mx-auto bg-white/95 rounded-2xl p-8 shadow-lg">
               <OnboardingFlow 
                 onComplete={(userData) => {
                   if (showLoginOnboarding) {
@@ -483,8 +483,8 @@ function App() {
       <main className="flex-1 p-4 sm:p-8 space-y-6 sm:ml-60 pt-16 sm:pt-0">
         {/* Onboarding Overlay */}
         {(showOnboarding || showLoginOnboarding) && (
-          <div className="fixed inset-0 bg-[#f7f2ff]/95 backdrop-blur-md flex items-center justify-center z-50 p-4 md:p-8">
-            <div className="relative max-w-6xl w-full mx-auto bg-white rounded-2xl p-6 md:p-8 shadow-xl">
+          <div className="fixed inset-0 bg-gradient-to-br from-navlink/30 to-lavender/30 backdrop-blur-lg flex items-center justify-center z-50 p-8 animate-fadeIn">
+            <div className="relative max-w-6xl w-full mx-auto bg-white/95 rounded-2xl p-8 shadow-lg">
               <OnboardingFlow 
                 onComplete={(userData) => {
                   if (showLoginOnboarding) {
