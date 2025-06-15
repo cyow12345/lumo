@@ -17,14 +17,14 @@ interface UserData {
   growth_description: string;
   
   // Schritt 2: Über dich
-  tryNewThings: number;
-  socialEnergy: number;
-  planAhead: number;
-  harmonyOriented: number;
-  emotionalDepth: number;
+  try_new_things: number;
+  social_energy: number;
+  plan_ahead: number;
+  harmony_oriented: number;
+  emotional_depth: number;
   
   // Schritt 3: Deine Beziehung
-  relationshipStartDate: string;
+  relationship_start_date: string;
   time_together_pref: string;
   closeness_style: string;
   
@@ -32,14 +32,14 @@ interface UserData {
   show_understanding: string;
   resolve_conflicts: string;
   evening_alone: string;
-  separationStyle: string;
-  attachmentStyle: string;
-  addressingIssues: string;
-  emotionalExpression: string;
-  hurtResponse: string;
-  previousConflict: string;
-  emotionalConflicts: string;
-  criticismResponse: string;
+  separation_style: string;
+  attachment_style: string;
+  addressing_issues: string;
+  emotional_expression: string;
+  hurt_response: string;
+  previous_conflict: string;
+  emotional_conflicts: string;
+  criticism_response: string;
   
   // Schritt 5: Werte & Persönlichkeit
   openness: number;
@@ -47,26 +47,26 @@ interface UserData {
   conscientiousness: number;
   agreeableness: number;
   neuroticism: number;
-  relationshipValues: RelationshipValue[];
-  fidelityMeaning: string;
-  valuesPriority: any;
-  parentalInfluence: string;
-  trustExperience: string;
-  parentalPatterns: string;
+  relationship_values: RelationshipValue[];
+  fidelity_meaning: string;
+  values_priority: any;
+  parental_influence: string;
+  trust_experience: string;
+  parental_patterns: string;
   
   // Schritt 6: Features
-  whatsappImport: boolean;
+  whatsapp_import: boolean;
   astrology: boolean;
-  birthDate: string;
-  birthTime: string;
-  birthPlace: string;
+  birth_date: string;
+  birth_time: string;
+  birth_place: string;
   
   // Schritt 7: Account
   email: string;
   password: string;
   
   // Schritt 8: Partner
-  partnerCode: string;
+  partner_code: string;
 }
 
 type RelationshipValue = 'Vertrauen' | 'Ehrlichkeit' | 'Kommunikation' | 'Respekt' | 'Leidenschaft' | 'Unabhängigkeit' | 'Humor' | 'Treue';
@@ -92,14 +92,14 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
     growth_description: '',
     
     // Schritt 2: Über dich
-    tryNewThings: 0,
-    socialEnergy: 0,
-    planAhead: 0,
-    harmonyOriented: 0,
-    emotionalDepth: 0,
+    try_new_things: 0,
+    social_energy: 0,
+    plan_ahead: 0,
+    harmony_oriented: 0,
+    emotional_depth: 0,
     
     // Schritt 3: Deine Beziehung
-    relationshipStartDate: '',
+    relationship_start_date: '',
     time_together_pref: '',
     closeness_style: '',
     
@@ -107,14 +107,14 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
     show_understanding: '',
     resolve_conflicts: '',
     evening_alone: '',
-    separationStyle: '',
-    attachmentStyle: '',
-    addressingIssues: '',
-    emotionalExpression: '',
-    hurtResponse: '',
-    previousConflict: '',
-    emotionalConflicts: '',
-    criticismResponse: '',
+    separation_style: '',
+    attachment_style: '',
+    addressing_issues: '',
+    emotional_expression: '',
+    hurt_response: '',
+    previous_conflict: '',
+    emotional_conflicts: '',
+    criticism_response: '',
     
     // Schritt 5: Werte & Persönlichkeit
     openness: 0,
@@ -122,26 +122,26 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
     conscientiousness: 0,
     agreeableness: 0,
     neuroticism: 0,
-    relationshipValues: [],
-    fidelityMeaning: '',
-    valuesPriority: {},
-    parentalInfluence: '',
-    trustExperience: '',
-    parentalPatterns: '',
+    relationship_values: [],
+    fidelity_meaning: '',
+    values_priority: {},
+    parental_influence: '',
+    trust_experience: '',
+    parental_patterns: '',
     
     // Schritt 6: Features
-    whatsappImport: false,
+    whatsapp_import: false,
     astrology: false,
-    birthDate: '',
-    birthTime: '',
-    birthPlace: '',
+    birth_date: '',
+    birth_time: '',
+    birth_place: '',
     
     // Schritt 7: Account
     email: '',
     password: '',
     
     // Schritt 8: Partner
-    partnerCode: ''
+    partner_code: ''
   });
 
   // Reduziere die Anzahl der Schritte
@@ -185,8 +185,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
   };
 
   const handleMultiSelect = (name: string, value: RelationshipValue[]) => {
-    if (name === 'relationshipValues') {
-      setUserData(prev => ({ ...prev, relationshipValues: value }));
+    if (name === 'relationship_values') {
+      setUserData(prev => ({ ...prev, relationship_values: value }));
     } else {
       setUserData(prev => ({ ...prev, [name]: value }));
     }
@@ -228,36 +228,36 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
             gender: userData.gender,
             happy_moments: userData.happy_moments,
             growth_description: userData.growth_description,
-            relationship_start_date: userData.relationshipStartDate || null,
+            relationship_start_date: userData.relationship_start_date || null,
             time_together_pref: userData.time_together_pref,
             closeness_style: userData.closeness_style,
             show_understanding: userData.show_understanding,
             resolve_conflicts: userData.resolve_conflicts,
             evening_alone: userData.evening_alone,
-            separation_anxiety: userData.separationStyle,
-            attachment_style: userData.attachmentStyle,
-            addressing_issues: userData.addressingIssues,
-            emotional_expression: userData.emotionalExpression,
-            hurt_response: userData.hurtResponse,
-            previous_conflict: userData.previousConflict,
-            emotional_conflicts: userData.emotionalConflicts,
-            criticism_response: userData.criticismResponse,
+            separation_anxiety: userData.separation_style,
+            attachment_style: userData.attachment_style,
+            addressing_issues: userData.addressing_issues,
+            emotional_expression: userData.emotional_expression,
+            hurt_response: userData.hurt_response,
+            previous_conflict: userData.previous_conflict,
+            emotional_conflicts: userData.emotional_conflicts,
+            criticism_response: userData.criticism_response,
             openness: userData.openness,
             extraversion: userData.extraversion,
             conscientiousness: userData.conscientiousness,
             agreeableness: userData.agreeableness,
             neuroticism: userData.neuroticism,
-            relationship_values: userData.relationshipValues,
-            fidelity_meaning: userData.fidelityMeaning,
-            values_priority: userData.valuesPriority,
-            parental_influence: userData.parentalInfluence,
-            trust_experience: userData.trustExperience,
-            parental_patterns: userData.parentalPatterns,
-            whatsapp_import: userData.whatsappImport,
+            relationship_values: userData.relationship_values,
+            fidelity_meaning: userData.fidelity_meaning,
+            values_priority: userData.values_priority,
+            parental_influence: userData.parental_influence,
+            trust_experience: userData.trust_experience,
+            parental_patterns: userData.parental_patterns,
+            whatsapp_import: userData.whatsapp_import,
             astrology: userData.astrology,
-            birth_date: userData.birthDate || null,
-            birth_time: userData.birthTime && userData.birthTime.length === 5 ? userData.birthTime + ':00' : userData.birthTime || null,
-            birth_place: userData.birthPlace,
+            birth_date: userData.birth_date || null,
+            birth_time: userData.birth_time && userData.birth_time.length === 5 ? userData.birth_time + ':00' : userData.birth_time || null,
+            birth_place: userData.birth_place,
             invite_code: inviteCode.toUpperCase()
           };
           console.log('[LUMO DEBUG] Profil wird gespeichert:', profileData);
@@ -270,12 +270,12 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
               }
             ]);
           // Partnercode-Verknüpfung im Hintergrund
-          if (userData.partnerCode.trim()) {
+          if (userData.partner_code.trim()) {
             try {
               const { data: partner, error: partnerError } = await supabase
                 .from('user_profiles')
                 .select('id, partner_id')
-                .eq('invite_code', userData.partnerCode.trim().toUpperCase())
+                .eq('invite_code', userData.partner_code.trim().toUpperCase())
                 .single();
               if (!partnerError && partner && typeof partner === 'object' && 'id' in partner && !('partner_id' in partner && partner.partner_id)) {
                 // Verknüpfe beide User gegenseitig
@@ -336,20 +336,20 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
       case 1: // Willkommen & Basics
         return !userData.name || !userData.age || !userData.gender;
       case 2: // Über dich
-        return userData.tryNewThings === 0 || 
-               userData.socialEnergy === 0 || 
-               userData.planAhead === 0 || 
-               userData.harmonyOriented === 0 || 
-               userData.emotionalDepth === 0;
+        return userData.try_new_things === 0 || 
+               userData.social_energy === 0 || 
+               userData.plan_ahead === 0 || 
+               userData.harmony_oriented === 0 || 
+               userData.emotional_depth === 0;
       case 3: // Deine Beziehung
-        return !userData.relationshipStartDate || 
+        return !userData.relationship_start_date || 
                !userData.time_together_pref || 
                !userData.closeness_style;
       case 4: // Kommunikation
         return !userData.show_understanding || 
                !userData.resolve_conflicts;
       case 5: // Werte
-        return userData.relationshipValues.length === 0;
+        return userData.relationship_values.length === 0;
       case 6: // Features
         return false; // Optional
       case 7: // Account
@@ -404,7 +404,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
   // Autocomplete für Geburtsort
   const handleBirthPlaceInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setUserData(prev => ({ ...prev, birthPlace: value }));
+    setUserData(prev => ({ ...prev, birth_place: value }));
     if (birthPlaceTimeout.current) clearTimeout(birthPlaceTimeout.current);
     if (value.length >= 2) {
       birthPlaceTimeout.current = setTimeout(async () => {
@@ -422,7 +422,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
   };
 
   const handleBirthPlaceSelect = (suggestion: string) => {
-    setUserData(prev => ({ ...prev, birthPlace: suggestion }));
+    setUserData(prev => ({ ...prev, birth_place: suggestion }));
     setBirthPlaceSuggestions([]);
   };
 
@@ -537,8 +537,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <ScaleInput
-                    name="tryNewThings"
-                    value={userData.tryNewThings}
+                    name="try_new_things"
+                    value={userData.try_new_things}
                     label="Ich liebe es, Neues auszuprobieren"
                     minLabel="Trifft gar nicht zu"
                     maxLabel="Trifft voll zu"
@@ -546,8 +546,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                   />
 
                   <ScaleInput
-                    name="socialEnergy"
-                    value={userData.socialEnergy}
+                    name="social_energy"
+                    value={userData.social_energy}
                     label="Zeit mit anderen Menschen gibt mir Energie"
                     minLabel="Eher nicht"
                     maxLabel="Absolut"
@@ -555,8 +555,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                   />
 
                   <ScaleInput
-                    name="planAhead"
-                    value={userData.planAhead}
+                    name="plan_ahead"
+                    value={userData.plan_ahead}
                     label="Ich plane gerne im Voraus"
                     minLabel="Spontan ist besser"
                     maxLabel="Plane gerne"
@@ -564,8 +564,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                   />
 
                   <ScaleInput
-                    name="harmonyOriented"
-                    value={userData.harmonyOriented}
+                    name="harmony_oriented"
+                    value={userData.harmony_oriented}
                     label="Harmonie ist mir wichtig"
                     minLabel="Nicht so wichtig"
                     maxLabel="Sehr wichtig"
@@ -573,8 +573,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                   />
 
                   <ScaleInput
-                    name="emotionalDepth"
-                    value={userData.emotionalDepth}
+                    name="emotional_depth"
+                    value={userData.emotional_depth}
                     label="Ich denke viel über Gefühle nach"
                     minLabel="Eher selten"
                     maxLabel="Sehr oft"
@@ -599,8 +599,8 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                     <label className="block text-sm font-medium text-midnight">Wann hat eure Beziehung angefangen?</label>
                     <input
                       type="date"
-                      name="relationshipStartDate"
-                      value={userData.relationshipStartDate}
+                      name="relationship_start_date"
+                      value={userData.relationship_start_date}
                       onChange={handleInputChange}
                       className="w-full p-3 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender/20 focus:border-transparent text-sm"
                       max={new Date().toISOString().split('T')[0]}
@@ -749,23 +749,23 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                         <label 
                           key={value} 
                           className={`flex items-start p-4 border rounded-xl cursor-pointer transition-all ${
-                            userData.relationshipValues.includes(value as RelationshipValue)
+                            userData.relationship_values.includes(value as RelationshipValue)
                               ? 'border-lavender bg-lavender/5 text-navlink'
                               : 'border-lavender/30 hover:bg-lavender/5'
                           }`}
                         >
                           <input
                             type="checkbox"
-                            checked={userData.relationshipValues.includes(value as RelationshipValue)}
+                            checked={userData.relationship_values.includes(value as RelationshipValue)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                handleMultiSelect('relationshipValues', [...userData.relationshipValues, value as RelationshipValue].slice(0, 3));
+                                handleMultiSelect('relationship_values', [...userData.relationship_values, value as RelationshipValue].slice(0, 3));
                               } else {
-                                handleMultiSelect('relationshipValues', userData.relationshipValues.filter(v => v !== value));
+                                handleMultiSelect('relationship_values', userData.relationship_values.filter(v => v !== value));
                               }
                             }}
                             className="form-checkbox text-lavender mr-3 mt-1"
-                            disabled={!userData.relationshipValues.includes(value as RelationshipValue) && userData.relationshipValues.length >= 3}
+                            disabled={!userData.relationship_values.includes(value as RelationshipValue) && userData.relationship_values.length >= 3}
                           />
                           <div>
                             <div className="flex items-center gap-2 font-medium">
@@ -779,7 +779,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                     </div>
                   </div>
 
-                  {userData.relationshipValues.length > 0 && (
+                  {userData.relationship_values.length > 0 && (
                     <div className="space-y-4 mt-6">
                       <label className="block text-sm font-medium text-midnight">
                         Woran möchtet ihr gemeinsam wachsen?
@@ -832,9 +832,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                           <label className="flex items-center space-x-2">
                             <input
                               type="radio"
-                              name="whatsappImport"
-                              checked={userData.whatsappImport === true}
-                              onChange={() => setUserData(prev => ({ ...prev, whatsappImport: true }))}
+                              name="whatsapp_import"
+                              checked={userData.whatsapp_import === true}
+                              onChange={() => setUserData(prev => ({ ...prev, whatsapp_import: true }))}
                               className="form-radio text-green-600"
                             />
                             <span className="text-sm text-green-900">Ja, interessiert mich</span>
@@ -842,9 +842,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onCancel, i
                           <label className="flex items-center space-x-2">
                             <input
                               type="radio"
-                              name="whatsappImport"
-                              checked={userData.whatsappImport === false}
-                              onChange={() => setUserData(prev => ({ ...prev, whatsappImport: false }))}
+                              name="whatsapp_import"
+                              checked={userData.whatsapp_import === false}
+                              onChange={() => setUserData(prev => ({ ...prev, whatsapp_import: false }))}
                               className="form-radio text-green-600"
                             />
                             <span className="text-sm text-green-900">Nein, danke</span>
