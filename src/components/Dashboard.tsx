@@ -1,20 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Smile, Heart, Gift, Quote, Bell, Check, Users, LinkIcon, CheckCircle2, Loader2, AlertCircle, MessageCircle, User as UserIcon, LogOut, Settings as SettingsIcon } from "lucide-react";
+import { Smile, Heart, Gift, Quote, Bell, Check, Users, LinkIcon, CheckCircle2, Loader2, AlertCircle, MessageCircle, User as UserIcon, LogOut, Settings as SettingsIcon, ShoppingBag, Home } from "lucide-react";
 import Card from "./Card";
 import { supabase } from '../lib/supabaseClient';
-import { analyzeRelationship, PersonData, RelationshipData, AnalysisResult } from '../services/analyzeRelationship';
+import { analyzeRelationship, PersonData, RelationshipData, AnalysisResult, triggerAnalysisUpdate, AnalysisUpdateTrigger, shouldUpdateAnalysis } from '../services/analyzeRelationship';
 import PartnerStatusBox from './PartnerStatusBox';
 import WeeklyReflectionCard from './WeeklyReflectionCard';
-import LumoCoach from './LumoCoach';
+import LumoHerzensfluesterer from './LumoHerzensfluesterer';
 import Profile from './Profile';
 import Settings from './Settings';
+import Shop from './Shop';
+
+// Füge die LumoChat Interface-Definition am Anfang der Datei hinzu
+interface LumoChatWindow extends Window {
+  LumoChat?: {
+    setShowTypeSelector: (show: boolean) => void;
+  }
+}
+
+declare const window: LumoChatWindow;
+
+// Federn-Belohnungen für verschiedene Aktionen
+const FEATHER_REWARDS = {
+  VIBE_CHECK: 10,
+  THINKING_OF_YOU: 5,
+  FIRST_VIBE_CHECK: 20,
+  STREAK_BONUS: 15
+};
 
 interface DashboardProps {
   userId?: string;
+  featherBalance?: number;
+  onFeatherBalanceChange?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
+const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFeatherBalanceChange }) => {
   const [notificationSent, setNotificationSent] = useState(false);
+  const [notificationDisabled, setNotificationDisabled] = useState(false);
   const [userName, setUserName] = useState<string>('');
   const [partnerLinked, setPartnerLinked] = useState<boolean>(false);
   const [inviteCode, setInviteCode] = useState<string>('');
@@ -22,19 +43,16 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
   const [codeCopied, setCodeCopied] = useState<boolean>(false);
   const [showPartnerLinkedInfo, setShowPartnerLinkedInfo] = useState(false);
 
-  // Analyse-Status
+  // State für die Analyse
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
-  // Füge State für die Geburtsdaten hinzu
-  const [userAstroData, setUserAstroData] = useState<{ birthDate?: string; birthTime?: string; birthPlace?: string }>({});
-  const [partnerAstroData, setPartnerAstroData] = useState<{ birthDate?: string; birthTime?: string; birthPlace?: string }>({});
-
-  const [activeTab, setActiveTab] = useState<'analyse' | 'astro'>('analyse');
-
   // State für das Startdatum der Beziehung
   const [relationshipStartDate, setRelationshipStartDate] = useState<string | null>(null);
+
+  // Entferne Astro-bezogene States
+  const [activeTab, setActiveTab] = useState<'analyse'>('analyse');
 
   // Dashboard reload helper
   const reloadDashboard = async () => {
@@ -45,88 +63,103 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
   const [userData, setUserData] = useState<any>(null);
   const [partnerData, setPartnerData] = useState<any>(null);
   const [partnerId, setPartnerId] = useState<string | null>(null);
+
   const loadUserData = async () => {
     if (!userId) return;
+
+    // Bereinige die userId von möglichen Zusätzen
+    const cleanUserId = userId.split(':')[0];
+    console.log('Lade Benutzerdaten für bereinigte ID:', cleanUserId);
+
     try {
       const { data: userDataRaw, error: userError } = await supabase
         .from('user_profiles')
-        .select('name, invite_code, partner_id, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence, birth_date, birth_time, birth_place, relationship_start_date, relationship_status, astrology')
-        .eq('id', userId)
+        .select('name, invite_code, partner_id, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence, relationship_start_date, relationship_status, avatar_url')
+        .eq('id', cleanUserId)
         .single();
-      if (userError) throw userError;
+
+      if (userError) {
+        console.error('Fehler beim Laden der Benutzerdaten:', userError);
+        throw userError;
+      }
+
       if (userDataRaw && typeof userDataRaw === 'object' && 'name' in userDataRaw) {
+        console.log('Benutzerdaten geladen:', userDataRaw);
         setUserData(userDataRaw);
         setUserName('name' in userDataRaw ? userDataRaw.name : 'Benutzer');
         setInviteCode('invite_code' in userDataRaw ? userDataRaw.invite_code : '');
         setPartnerLinked('partner_id' in userDataRaw && !!userDataRaw.partner_id);
-        setUserAstroData({
-          birthDate: 'birth_date' in userDataRaw ? userDataRaw.birth_date : undefined,
-          birthTime: 'birth_time' in userDataRaw ? userDataRaw.birth_time : undefined,
-          birthPlace: 'birth_place' in userDataRaw ? userDataRaw.birth_place : undefined,
-        });
         setRelationshipStartDate('relationship_start_date' in userDataRaw ? userDataRaw.relationship_start_date : null);
         setPartnerName('');
+
         if ('partner_id' in userDataRaw && userDataRaw.partner_id) {
+          console.log('Lade Partnerdaten für:', userDataRaw.partner_id);
           const { data: partnerDataRaw, error: partnerError } = await supabase
             .from('user_profiles')
-            .select('id, name, partner_id, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence, birth_date, birth_time, birth_place, astrology')
+            .select('id, name, partner_id, age, gender, attachment_style, addressing_issues, relationship_values, parental_influence')
             .eq('id', userDataRaw.partner_id)
             .single();
+
           if (!partnerError && partnerDataRaw && typeof partnerDataRaw === 'object' && 'name' in partnerDataRaw) {
+            console.log('Partnerdaten geladen:', partnerDataRaw);
             setPartnerData(partnerDataRaw);
             setPartnerName('name' in partnerDataRaw ? partnerDataRaw.name : '');
-            setPartnerAstroData({
-              birthDate: 'birth_date' in partnerDataRaw ? partnerDataRaw.birth_date : undefined,
-              birthTime: 'birth_time' in partnerDataRaw ? partnerDataRaw.birth_time : undefined,
-              birthPlace: 'birth_place' in partnerDataRaw ? partnerDataRaw.birth_place : undefined,
-            });
-            if (partnerDataRaw.partner_id !== userId) {
+
+            // Aktualisiere Partner-IDs wenn nötig
+            if (partnerDataRaw.partner_id !== cleanUserId) {
+              console.log('Aktualisiere Partner-ID des Partners');
               await supabase
                 .from('user_profiles')
-                .update({ partner_id: userId })
+                .update({ partner_id: cleanUserId })
                 .eq('id', partnerDataRaw.id);
             }
             if (userDataRaw.partner_id !== partnerDataRaw.id) {
+              console.log('Aktualisiere Partner-ID des Benutzers');
               await supabase
                 .from('user_profiles')
                 .update({ partner_id: partnerDataRaw.id })
-                .eq('id', userId);
+                .eq('id', cleanUserId);
             }
+
+            // Starte Analyse
             setAnalysisLoading(true);
             setAnalysisError(null);
             try {
+              console.log('Bereite Analysedaten vor...');
               const personA: PersonData = {
+                id: cleanUserId,
                 name: userDataRaw.name,
                 age: userDataRaw.age,
                 gender: userDataRaw.gender,
                 attachmentStyle: userDataRaw.attachment_style,
                 communication: userDataRaw.addressing_issues,
                 values: userDataRaw.relationship_values || [],
-                childhood: userDataRaw.parental_influence,
-                birthDate: userDataRaw.birth_date,
-                birthTime: userDataRaw.birth_time,
-                birthPlace: userDataRaw.birth_place,
+                childhood: userDataRaw.parental_influence
               };
               const personB: PersonData = {
+                id: partnerDataRaw.id,
                 name: partnerDataRaw.name,
                 age: partnerDataRaw.age,
                 gender: partnerDataRaw.gender,
                 attachmentStyle: partnerDataRaw.attachment_style,
                 communication: partnerDataRaw.addressing_issues,
                 values: partnerDataRaw.relationship_values || [],
-                childhood: partnerDataRaw.parental_influence,
-                birthDate: partnerDataRaw.birth_date,
-                birthTime: partnerDataRaw.birth_time,
-                birthPlace: partnerDataRaw.birth_place,
+                childhood: partnerDataRaw.parental_influence
               };
               const relationship: RelationshipData = {
                 relationshipStartDate: userDataRaw.relationship_start_date,
                 relationshipStatus: userDataRaw.relationship_status,
               };
+              console.log('Starte Analyse mit Daten:', { personA, personB, relationship });
               const result = await analyzeRelationship(personA, personB, relationship);
+              if (!result) {
+                throw new Error('Analyse ergab kein Ergebnis');
+              }
+              console.log('Analyseergebnis:', result);
               setAnalysis(result);
             } catch (err: any) {
-              setAnalysisError('Analyse fehlgeschlagen. Bitte versuche es später erneut.');
+              console.error('Fehler bei der Analyse:', err);
+              setAnalysisError(err.message || 'Analyse fehlgeschlagen. Bitte versuche es später erneut.');
             } finally {
               setAnalysisLoading(false);
             }
@@ -175,15 +208,143 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
     );
   };
 
-  const sendThinkingOfYouNotification = () => {
-    setNotificationSent(true);
-    setTimeout(() => {
-      setNotificationSent(false);
-    }, 3000);
+  // Entferne den lokalen featherBalance State
+  const [showFeatherAnimation, setShowFeatherAnimation] = useState(false);
+  const [earnedFeathers, setEarnedFeathers] = useState<number>(0);
+
+  // Funktion zum Hinzufügen von Federn
+  const addFeathers = async (amount: number, reason: string) => {
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase
+        .from('golden_feather_transactions')
+        .insert({
+          user_id: userId,
+          amount: amount,
+          reason: reason
+        });
+
+      if (error) throw error;
+
+      setEarnedFeathers(amount);
+      setShowFeatherAnimation(true);
+      setTimeout(() => {
+        setShowFeatherAnimation(false);
+        setEarnedFeathers(0);
+        if (onFeatherBalanceChange) {
+          onFeatherBalanceChange();
+        }
+      }, 2000);
+    } catch (err) {
+      console.error('Fehler beim Hinzufügen der Federn:', err);
+    }
   };
 
+  // Lade den Federn-Stand beim Start
+  useEffect(() => {
+    if (onFeatherBalanceChange) {
+      onFeatherBalanceChange();
+    }
+  }, [userId]);
+
+  // Prüfe, ob heute bereits eine Nachricht gesendet wurde
+  useEffect(() => {
+    if (!userId) return;
+
+    const checkTodayNotification = async () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const { data, error } = await supabase
+        .from('thinking_of_you_notifications')
+        .select('sent_at')
+        .eq('user_id', userId)
+        .gte('sent_at', today.toISOString())
+        .order('sent_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Fehler beim Prüfen der Benachrichtigungen:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setNotificationDisabled(true);
+        setNotificationSent(true);
+      }
+    };
+
+    checkTodayNotification();
+  }, [userId]);
+
+  const sendThinkingOfYouNotification = async () => {
+    if (!userId || notificationDisabled) return;
+
+    try {
+      // Speichere die Benachrichtigung in der Datenbank
+      const { error: notificationError } = await supabase
+        .from('thinking_of_you_notifications')
+        .insert([{ user_id: userId }]);
+
+      if (notificationError) throw notificationError;
+
+      setNotificationSent(true);
+      setNotificationDisabled(true);
+      
+      // Füge Federn hinzu und zeige Animation
+      await addFeathers(FEATHER_REWARDS.THINKING_OF_YOU, 'thinking_of_you');
+      setEarnedFeathers(FEATHER_REWARDS.THINKING_OF_YOU);
+      setShowFeatherAnimation(true);
+      
+      // Zeige Erfolgsanimation für 3 Sekunden
+      setTimeout(() => {
+        setNotificationSent(false);
+      }, 3000);
+
+      // Verstecke Federn-Animation nach 2 Sekunden
+      setTimeout(() => {
+        setShowFeatherAnimation(false);
+        setEarnedFeathers(0);
+        loadFeatherBalance();
+      }, 2000);
+    } catch (error) {
+      console.error('Fehler beim Senden der Benachrichtigung:', error);
+    }
+  };
+
+  // Entferne Astro-bezogene Funktionen
   const [showFullAnalysis, setShowFullAnalysis] = useState(false);
-  const [showAstroAnalysis, setShowAstroAnalysis] = useState(false);
+  const [canUpdate, setCanUpdate] = useState(false);
+  const [nextUpdateDate, setNextUpdateDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const checkUpdateStatus = async () => {
+      if (userId && partnerData?.id) {
+        try {
+          // Hole den Update-Status aus der Datenbank
+          const { data: analysisData } = await supabase
+            .from('relationship_analysis')
+            .select('next_update_at')
+            .eq('user_id', userId)
+            .eq('partner_id', partnerData.id)
+            .single();
+
+          if (analysisData) {
+            const nextUpdate = new Date(analysisData.next_update_at);
+            setNextUpdateDate(nextUpdate);
+            setCanUpdate(nextUpdate <= new Date());
+          } else {
+            setCanUpdate(true);
+          }
+        } catch (error) {
+          console.error('Fehler beim Prüfen des Update-Status:', error);
+        }
+      }
+    };
+
+    checkUpdateStatus();
+  }, [userId, partnerData?.id]);
 
   // Hilfsfunktion für kurze Zusammenfassung
   function getShortSummary(text: string, maxSentences = 2) {
@@ -213,32 +374,6 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
     return 9572; // Fallback-Wert, falls kein Datum vorhanden
   }
 
-  // Hilfsfunktion für kompakte Geburtsdatenanzeige
-  function formatBirthInfo(birth: string | undefined) {
-    if (!birth) return '';
-    const dateMatch = birth.match(/Geburtsdatum: ([0-9]{4}-[0-9]{2}-[0-9]{2})/);
-    const timeMatch = birth.match(/-zeit: ([0-9]{2}:[0-9]{2})/);
-    const placeMatch = birth.match(/-ort: ([^,]+)/);
-    let date = dateMatch ? dateMatch[1] : '';
-    let time = timeMatch ? timeMatch[1] : '';
-    let place = placeMatch ? placeMatch[1].trim() : '';
-    if (date) {
-      const [y, m, d] = date.split('-');
-      date = `${d}.${m}.${y}`;
-    }
-    if (time) {
-      time = `${time} Uhr`;
-    }
-    return [date, time, place].filter(Boolean).join(' · ');
-  }
-
-  // Hilfsfunktion für astrologische Zeichen (nur das Zeichen, ohne Namenszusatz)
-  function cleanAstroValue(val?: string) {
-    if (!val) return '';
-    const parts = val.split(':');
-    return parts.length > 1 ? parts[1].trim() : val.trim();
-  }
-
   // Hilfsfunktion für Absätze statt Listenpunkte
   function splitToParagraphs(text?: string) {
     if (!text) return null;
@@ -261,6 +396,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
   }
 
   const [showCoach, setShowCoach] = useState(false);
+  const [showShop, setShowShop] = useState(false);
 
   // Logout-Handler für den Abmelden-Button
   const handleLogout = async () => {
@@ -276,39 +412,6 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
 
   // Lumo-Logo Pfad wie in App.tsx
   const lumoLogo = '/lumo_logo.png';
-
-  const [showAstroForm, setShowAstroForm] = useState(false);
-  const [astroForm, setAstroForm] = useState({ birthDate: '', birthTime: '', birthPlace: '' });
-  const [astroFormLoading, setAstroFormLoading] = useState(false);
-  const [astroFormError, setAstroFormError] = useState<string | null>(null);
-  const [astroFormSuccess, setAstroFormSuccess] = useState(false);
-
-  const [birthPlaceSuggestions, setBirthPlaceSuggestions] = useState<string[]>([]);
-  const birthPlaceTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  const handleBirthPlaceInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setAstroForm(f => ({ ...f, birthPlace: value }));
-    if (birthPlaceTimeout.current) clearTimeout(birthPlaceTimeout.current);
-    if (value.length >= 2) {
-      birthPlaceTimeout.current = setTimeout(async () => {
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(value)}&format=json&limit=5`);
-          const data = await res.json();
-          setBirthPlaceSuggestions(data.map((item: any) => item.display_name));
-        } catch {
-          setBirthPlaceSuggestions([]);
-        }
-      }, 300);
-    } else {
-      setBirthPlaceSuggestions([]);
-    }
-  };
-
-  const handleBirthPlaceSelect = (suggestion: string) => {
-    setAstroForm(f => ({ ...f, birthPlace: suggestion }));
-    setBirthPlaceSuggestions([]);
-  };
 
   const [userEmail, setUserEmail] = useState<string>('');
 
@@ -381,589 +484,654 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
     fetchPartnerId();
   }, [userId]);
 
+  // Funktion zur Berechnung des nächsten Jahrestags
+  const getNextAnniversary = () => {
+    if (!relationshipStartDate) return null;
+
+    const start = new Date(relationshipStartDate);
+    const today = new Date();
+    
+    // Setze das Jahr des Jahrestags auf das aktuelle Jahr
+    let nextAnniversary = new Date(start);
+    nextAnniversary.setFullYear(today.getFullYear());
+    
+    // Wenn der Jahrestag dieses Jahr bereits vorbei ist, nehme nächstes Jahr
+    if (nextAnniversary < today) {
+      nextAnniversary.setFullYear(today.getFullYear() + 1);
+    }
+    
+    // Berechne die Tage bis zum nächsten Jahrestag
+    const diffTime = Math.abs(nextAnniversary.getTime() - today.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Berechne das wievielte Jahr es sein wird
+    const years = nextAnniversary.getFullYear() - start.getFullYear();
+    
+    return {
+      date: nextAnniversary,
+      daysUntil: diffDays,
+      years: years
+    };
+  };
+
+  // Event-Listener für das Schließen der Analyse
+  useEffect(() => {
+    const handleCloseAnalysis = () => {
+      setShowFullAnalysis(false);
+    };
+
+    window.addEventListener('closeAnalysis', handleCloseAnalysis);
+    return () => {
+      window.removeEventListener('closeAnalysis', handleCloseAnalysis);
+    };
+  }, []);
+
   return (
-    <div className="space-y-6 w-full relative pb-24">
-      {/* Begrüßungs-Card mit Profilbereich und Abmelde-Icon */}
-      <Card className="border border-lavender/30 bg-white/80 mb-2 relative p-4 sm:p-5">
-        {/* Icon-Buttons rechts oben */}
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-2 sm:gap-3 z-10">
+    <div className="h-screen overflow-hidden flex flex-col">
+      {/* Header Card mit Profil */}
+      <Card className="border border-lavender/30 bg-white/80 mb-2 relative p-4">
+        {/* Icon-Buttons rechts oben - nur auf Desktop */}
+        <div className="absolute top-3 right-3 sm:flex gap-3 z-10 hidden">
+          {/* Federn-Anzeige Desktop */}
+          <div 
+            className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-200 to-yellow-400 rounded-full shadow-md cursor-pointer hover:shadow-lg transition"
+            onClick={() => setShowShop(true)}
+            title="Zum Shop"
+          >
+            <div className="bg-white/80 rounded-full p-1 shadow-inner">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-5 h-5 filter drop-shadow"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
+                  fill="url(#feather-gradient-header)"
+                  className="drop-shadow-lg"
+                  style={{ filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))' }}
+                />
+                <path
+                  d="M12 4c-.3 0-.5.1-.7.3l-7 7c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7-7c.4-.4.4-1 0-1.4-.2-.2-.4-.3-.7-.3z"
+                  fill="url(#feather-shine-header)"
+                  className="drop-shadow-md"
+                />
+                <defs>
+                  <linearGradient id="feather-gradient-header" x1="12" y1="4" x2="12" y2="20" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#FFD700" />
+                    <stop offset="60%" stopColor="#FFA500" />
+                    <stop offset="100%" stopColor="#FF8C00" />
+                  </linearGradient>
+                  <linearGradient id="feather-shine-header" x1="8" y1="4" x2="8" y2="13" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#FFF5CC" />
+                    <stop offset="100%" stopColor="#FFD700" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <span className="font-semibold text-white drop-shadow-sm text-base">{featherBalance}</span>
+          </div>
           <button
             onClick={handleProfile}
-            className="p-1.5 sm:p-2 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition"
+            className="p-1.5 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition"
             title="Profil"
           >
-            <UserIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+            <UserIcon className="w-6 h-6" />
           </button>
           <button
             onClick={handleSettings}
-            className="p-1.5 sm:p-2 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition"
+            className="p-1.5 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition"
             title="Einstellungen"
           >
-            <SettingsIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+            <SettingsIcon className="w-6 h-6" />
           </button>
           <button
             onClick={handleLogout}
-            className="p-1.5 sm:p-2 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition shadow-lg"
+            className="p-1.5 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition"
             title="Abmelden"
           >
-            <LogOut className="w-7 h-7 sm:w-8 sm:h-8" />
+            <LogOut className="w-6 h-6" />
           </button>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Lumo-Logo: auf Mobil ausblenden */}
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-lavender rounded-full flex items-center justify-center text-white font-medium text-xl overflow-hidden hidden sm:flex">
-            <img src={lumoLogo} alt="Lumo Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
-          </div>
-          <div>
-            <div className="font-semibold text-base sm:text-lg">Hallo {userName}</div>
-            {partnerName && (
-              <div className="text-xs sm:text-sm text-midnight/80 mt-1">
-                Du bist mit {partnerName} schon {getDaysTogether()} Tage zusammen.
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* User-Profilbild */}
+            <div className="w-10 h-10 bg-lavender rounded-full flex items-center justify-center text-white font-medium text-lg overflow-hidden">
+              {userData?.avatar_url ? (
+                <img src={userData.avatar_url} alt={userName} className="w-full h-full object-cover" />
+              ) : (
+                <span>{userName?.charAt(0)?.toUpperCase()}</span>
+              )}
+            </div>
+            <div>
+              <div className="text-sm sm:text-base">
+                {partnerName ? `${userName} & ${partnerName}` : `Hallo ${userName}`}
               </div>
-            )}
+              {partnerName && (
+                <div className="text-xs sm:text-sm text-midnight/60">
+                  {getDaysTogether()} Tage zusammen
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Federn-Anzeige Mobile */}
+          <div className="sm:hidden">
+            <div 
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-200 to-yellow-400 rounded-full shadow-md cursor-pointer hover:shadow-lg transition"
+              onClick={() => setShowShop(true)}
+            >
+              <div className="bg-white/80 rounded-full p-0.5 shadow-inner">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 filter drop-shadow">
+                  <path
+                    d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
+                    fill="url(#feather-gradient-mobile)"
+                    className="drop-shadow-lg"
+                  />
+                  <path
+                    d="M12 4c-.3 0-.5.1-.7.3l-7 7c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7-7c.4-.4.4-1 0-1.4-.2-.2-.4-.3-.7-.3z"
+                    fill="url(#feather-shine-mobile)"
+                    className="drop-shadow-md"
+                  />
+                  <defs>
+                    <linearGradient id="feather-gradient-mobile" x1="12" y1="4" x2="12" y2="20" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#FFD700" />
+                      <stop offset="60%" stopColor="#FFA500" />
+                      <stop offset="100%" stopColor="#FF8C00" />
+                    </linearGradient>
+                    <linearGradient id="feather-shine-mobile" x1="8" y1="4" x2="8" y2="13" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#FFF5CC" />
+                      <stop offset="100%" stopColor="#FFD700" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <span className="font-semibold text-white drop-shadow-sm text-sm">{featherBalance}</span>
+            </div>
           </div>
         </div>
       </Card>
-      {/* Features-Card (neutral, ohne Profil) */}
-      <Card title={<span className="flex items-center gap-2 text-navlink"><span className="text-2xl">✨</span>Lumo liest zwischen den Zeilen, damit ihr euch wirklich hört.</span>} className="border border-lavender/30 bg-white/80 mb-2">
-        <ul className="list-disc pl-5 text-midnight/90 text-base space-y-1 mb-4">
-          <li><strong>Next-Level Coach:</strong> Lumo erkennt Muster, analysiert alle Daten und gibt dir ehrliches, individuelles Feedback.</li>
-          <li><strong>Glasklare Insights:</strong> Lumo liest zwischen den Zeilen und liefert sofort umsetzbare Impulse für mehr Nähe.</li>
-          <li><strong>Astro & Psychologie:</strong> 360°-Beziehungsblick – klar, modern, einzigartig.</li>
-        </ul>
-        <button
-          className="mt-6 px-5 py-2 rounded-xl bg-lavender text-white font-medium shadow hover:bg-lavender/80 transition"
-          onClick={() => setShowCoach(true)}
-        >
-          Mit Lumo sprechen
-        </button>
-      </Card>
-      {showPartnerLinkedInfo && (
-        <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl px-6 py-4 mb-2 text-center font-medium shadow-sm">
-          Partner erfolgreich verbunden! 🎉
+
+      {/* Federn-Animation */}
+      {showFeatherAnimation && (
+        <div className="fixed top-4 right-20 z-50 animate-fadeInUp">
+          <div className="flex items-center gap-1 bg-gradient-to-r from-amber-200 to-yellow-400 px-3 py-1 rounded-full shadow-lg">
+            <div className="bg-white/80 rounded-full p-1 shadow-inner">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-4 h-4 filter drop-shadow"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
+                  fill="url(#feather-gradient-anim)"
+                  className="drop-shadow-lg"
+                  style={{ filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))' }}
+                />
+                <path
+                  d="M12 4c-.3 0-.5.1-.7.3l-7 7c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7-7c.4-.4.4-1 0-1.4-.2-.2-.4-.3-.7-.3z"
+                  fill="url(#feather-shine-anim)"
+                  className="drop-shadow-md"
+                />
+                <defs>
+                  <linearGradient id="feather-gradient-anim" x1="12" y1="4" x2="12" y2="20" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#FFD700" />
+                    <stop offset="60%" stopColor="#FFA500" />
+                    <stop offset="100%" stopColor="#FF8C00" />
+                  </linearGradient>
+                  <linearGradient id="feather-shine-anim" x1="8" y1="4" x2="8" y2="13" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#FFF5CC" />
+                    <stop offset="100%" stopColor="#FFD700" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <span className="text-white font-medium">+{earnedFeathers}</span>
+          </div>
         </div>
       )}
-      <PartnerStatusBox
-        userId={userId || ''}
-        userName={userName}
-        inviteCode={inviteCode}
-        partnerLinked={partnerLinked}
-        partnerName={partnerName || ''}
-        reloadDashboard={reloadDashboard}
-        onPartnerLinked={handlePartnerLinked}
-      />
 
-      {/* Analyse/Astroanalyse Tabs */}
-      {partnerLinked && (
-        <Card className="border border-lavender/30 bg-white/80">
-          <div className="flex gap-2 mb-4">
-            <button
-              className={`px-4 py-2 rounded-t-lg font-semibold transition-all ${activeTab === 'analyse' ? 'bg-lavender text-white' : 'bg-lavender/10 text-lavender'}`}
-              onClick={() => { setActiveTab('analyse'); reloadDashboard(); }}
-            >
-              Beziehung
-            </button>
-            <button
-              className={`px-4 py-2 rounded-t-lg font-semibold transition-all ${activeTab === 'astro' ? 'bg-lavender text-white' : 'bg-lavender/10 text-lavender'}`}
-              onClick={() => { setActiveTab('astro'); reloadDashboard(); }}
-            >
-              Astro
-            </button>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto px-3">
+        {showPartnerLinkedInfo && (
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl px-5 py-3 mb-3 text-center text-base font-medium">
+            Partner erfolgreich verbunden! 🎉
           </div>
-          <div className="pt-2">
-            {activeTab === 'analyse' && (
-              analysisLoading ? (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <Loader2 className="animate-spin text-lavender mb-3" size={32} />
-                  <span className="text-midnight/70">Lumo analysiert eure Beziehung…</span>
-                </div>
-              ) : analysisError ? (
-                <div className="flex flex-col items-center justify-center py-8 text-red-600">
-                  <AlertCircle size={32} className="mb-2" />
-                  <span>{analysisError}</span>
-                </div>
-              ) : analysis ? (
-                <>
-                  {/* Chat-Bubble mit Emoji statt Lumo-Avatar */}
-                  <div className="flex items-start gap-3 bg-lavender/10 p-4 rounded-t-xl mb-2">
-                    <span className="text-2xl">💜</span>
-                    <div className="text-midnight/90 text-base">{(() => {
-                      const allText = [analysis.summary, analysis.communication, analysis.attachment, analysis.values].join(' ');
-                      const sentences = allText.match(/[^.!?]+[.!?]+/g) || [allText];
-                      const summary = sentences.slice(0, 3).join(' ').trim();
-                      return replaceNamesWithEure(summary, userName, partnerName || '');
-                    })()}</div>
+        )}
+
+        {/* Partner Status */}
+        <div className="mb-4">
+          <PartnerStatusBox
+            userId={userId || ''}
+            userName={userName}
+            inviteCode={inviteCode}
+            partnerLinked={partnerLinked}
+            partnerName={partnerName || ''}
+            reloadDashboard={reloadDashboard}
+            onPartnerLinked={handlePartnerLinked}
+          />
+        </div>
+
+        {/* Beziehungsanalyse und Vibe Check nebeneinander auf Desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+          {/* Beziehungsanalyse - Links auf Desktop */}
+          {partnerLinked && (
+            <Card className="border border-lavender/30 bg-white/80">
+              <div className="p-2 sm:p-5">
+                {analysisLoading ? (
+                  <div className="flex items-center justify-center py-4 sm:py-6">
+                    <Loader2 className="animate-spin text-lavender mr-2 sm:mr-3 w-5 h-5 sm:w-[24px] sm:h-[24px]" />
+                    <span className="text-sm sm:text-base text-midnight/70">Analysiere...</span>
                   </div>
-                  <div className="flex flex-col md:flex-row gap-4 p-2">
-                    <div className="bg-green-50 rounded-xl p-4 flex-1">
-                      <div className="font-semibold text-green-700 flex items-center gap-2 mb-1 text-lg"><span>💪</span>Stärken</div>
-                      <ul className="list-disc pl-5 text-midnight/90 text-sm">
-                        {analysis.strengths && analysis.strengths.map((s, i) => <li key={i}>{replaceNamesWithEure(s, userName, partnerName || '')}</li>)}
-                      </ul>
-                    </div>
-                    <div className="bg-amber-50 rounded-xl p-4 flex-1">
-                      <div className="font-semibold text-amber-700 flex items-center gap-2 mb-1 text-lg"><span>🌱</span>Wachstum</div>
-                      <ul className="list-disc pl-5 text-midnight/90 text-sm">
-                        {analysis.growthAreas && analysis.growthAreas.map((g, i) => <li key={i}>{replaceNamesWithEure(g, userName, partnerName || '')}</li>)}
-                      </ul>
-                    </div>
+                ) : analysisError ? (
+                  <div className="flex items-center justify-center py-4 sm:py-6 text-red-600 text-sm sm:text-base">
+                    <AlertCircle className="w-5 h-5 sm:w-[24px] sm:h-[24px] mr-2 sm:mr-3" />
+                    <span>{analysisError}</span>
                   </div>
-                  <div className="p-4">
+                ) : analysis ? (
+                  <>
+                    <div className="flex items-start gap-2 sm:gap-3 bg-lavender/10 p-3 sm:p-5 rounded-xl mb-2 sm:mb-4 text-sm sm:text-base">
+                      <span className="text-xl sm:text-2xl">💜</span>
+                      <div className="text-midnight/90">{(() => {
+                        const allText = [analysis.summary, analysis.communication, analysis.attachment, analysis.values].join(' ');
+                        const sentences = allText.match(/[^.!?]+[.!?]+/g) || [allText];
+                        const summary = sentences.slice(0, 2).join(' ').trim();
+                        return replaceNamesWithEure(summary, userName, partnerName || '');
+                      })()}</div>
+                    </div>
+                    {/* Stärken und Wachstum nur auf Desktop */}
+                    <div className="hidden sm:grid grid-cols-2 gap-3">
+                      <div className="bg-green-50 rounded-xl p-4">
+                        <div className="font-medium text-green-700 flex items-center gap-2 mb-2 text-base"><span>💪</span>Stärken</div>
+                        <ul className="text-sm text-midnight/90 pl-5 list-disc">
+                          {analysis.strengths && analysis.strengths.slice(0, 2).map((s, i) =>
+                            <li key={i}>{replaceNamesWithEure(s, userName, partnerName || '')}</li>
+                          )}
+                        </ul>
+                      </div>
+                      <div className="bg-amber-50 rounded-xl p-4">
+                        <div className="font-medium text-amber-700 flex items-center gap-2 mb-2 text-base"><span>🌱</span>Wachstum</div>
+                        <ul className="text-sm text-midnight/90 pl-5 list-disc">
+                          {analysis.growthAreas && analysis.growthAreas.slice(0, 2).map((g, i) =>
+                            <li key={i}>{replaceNamesWithEure(g, userName, partnerName || '')}</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
                     <button
                       onClick={() => setShowFullAnalysis(true)}
-                      className="px-5 py-2 rounded-xl bg-lavender text-white font-medium shadow hover:bg-lavender/80 transition"
+                      className="mt-2 sm:mt-4 px-4 sm:px-5 py-1.5 sm:py-2.5 rounded-xl bg-navlink text-white text-sm sm:text-base font-medium shadow hover:bg-navlink/80 transition w-full"
                     >
                       Ausführliche Analyse
                     </button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-midnight/60 py-6 text-center">Noch keine Analyse verfügbar.</div>
-              )
-            )}
-            {activeTab === 'astro' && (
-              analysisLoading ? (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <Loader2 className="animate-spin text-lavender mb-3" size={32} />
-                  <span className="text-midnight/70">Astrologische Analyse wird erstellt…</span>
-                </div>
-              ) : analysisError ? (
-                <div className="flex flex-col items-center justify-center py-8 text-red-600">
-                  <AlertCircle size={32} className="mb-2" />
-                  <span>{analysisError}</span>
-                </div>
-              ) : (!isAstroReady(userAstroData, userData?.astrology) && isAstroReady(partnerAstroData, partnerData?.astrology)) ? (
-                <>
-                  <div className="mb-3 text-midnight/80 text-sm text-center font-medium">
-                    Dein Partner wartet auf dich! Gib jetzt deine Daten ein, damit Lumo eure astrologische Analyse berechnen kann.
-                  </div>
-                  <form
-                    className="flex flex-col gap-3 bg-lavender/5 p-4 rounded-xl max-w-xs mx-auto"
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setAstroFormLoading(true);
-                      setAstroFormError(null);
-                      setAstroFormSuccess(false);
-                      try {
-                        // E-Mail holen (aus State oder Supabase Auth)
-                        let email = userEmail;
-                        if (!email) {
-                          const { data } = await supabase.auth.getUser();
-                          email = data?.user?.email || '';
-                        }
-                        const { error } = await supabase
-                          .from('user_profiles')
-                          .update({
-                            birth_date: astroForm.birthDate,
-                            birth_time: astroForm.birthTime,
-                            birth_place: astroForm.birthPlace,
-                            astrology: true
-                          })
-                          .eq('id', userId);
-                        if (error) throw error;
-                        setAstroFormSuccess(true);
-                        await reloadDashboard();
-                      } catch (err: any) {
-                        setAstroFormError('Fehler beim Speichern. Bitte versuche es erneut.');
-                      } finally {
-                        setAstroFormLoading(false);
-                      }
-                    }}
-                  >
-                    <label className="block text-sm font-medium text-midnight">Geburtsdatum</label>
-                    <input
-                      type="date"
-                      className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender text-sm"
-                      value={astroForm.birthDate}
-                      onChange={e => setAstroForm(f => ({ ...f, birthDate: e.target.value }))}
-                      required
-                    />
-                    <label className="block text-sm font-medium text-midnight">Geburtszeit</label>
-                    <input
-                      type="time"
-                      className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender text-sm"
-                      value={astroForm.birthTime}
-                      onChange={e => setAstroForm(f => ({ ...f, birthTime: e.target.value }))}
-                      required
-                    />
-                    <label className="block text-sm font-medium text-midnight">Geburtsort</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender text-sm"
-                        value={astroForm.birthPlace}
-                        onChange={handleBirthPlaceInput}
-                        autoComplete="off"
-                        required
-                        placeholder="Geburtsort"
-                      />
-                      {birthPlaceSuggestions.length > 0 && (
-                        <ul className="absolute z-10 left-0 right-0 bg-white border border-lavender/30 rounded-xl mt-1 max-h-48 overflow-y-auto shadow-lg">
-                          {birthPlaceSuggestions.map((suggestion, idx) => (
-                            <li
-                              key={idx}
-                              className="px-3 py-2 cursor-pointer hover:bg-lavender/10 text-midnight text-xs"
-                              onClick={() => handleBirthPlaceSelect(suggestion)}
-                            >
-                              {suggestion}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    {astroFormError && <div className="text-red-600 text-xs mt-2">{astroFormError}</div>}
-                    <button
-                      type="submit"
-                      className="mt-2 px-4 py-2 rounded-xl bg-lavender text-white font-medium shadow hover:bg-lavender/80 transition text-sm"
-                      disabled={astroFormLoading}
-                    >
-                      {astroFormLoading ? 'Speichere…' : 'Astro-Daten speichern'}
-                    </button>
-                  </form>
-                </>
-              ) : (!isAstroReady(userAstroData, userData?.astrology) && !isAstroReady(partnerAstroData, partnerData?.astrology)) ? (
-                <>
-                  <div className="mb-3 text-midnight/80 text-sm text-center font-medium">
-                    Gib deine Geburtsdaten ein, damit Lumo eine ausführliche astrologische Analyse für euch erstellen kann.
-                  </div>
-                  <form
-                    className="flex flex-col gap-3 bg-lavender/5 p-4 rounded-xl max-w-xs mx-auto"
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setAstroFormLoading(true);
-                      setAstroFormError(null);
-                      setAstroFormSuccess(false);
-                      try {
-                        // E-Mail holen (aus State oder Supabase Auth)
-                        let email = userEmail;
-                        if (!email) {
-                          const { data } = await supabase.auth.getUser();
-                          email = data?.user?.email || '';
-                        }
-                        const { error } = await supabase
-                          .from('user_profiles')
-                          .update({
-                            birth_date: astroForm.birthDate,
-                            birth_time: astroForm.birthTime,
-                            birth_place: astroForm.birthPlace,
-                            astrology: true
-                          })
-                          .eq('id', userId);
-                        if (error) throw error;
-                        setAstroFormSuccess(true);
-                        await reloadDashboard();
-                      } catch (err: any) {
-                        setAstroFormError('Fehler beim Speichern. Bitte versuche es erneut.');
-                      } finally {
-                        setAstroFormLoading(false);
-                      }
-                    }}
-                  >
-                    <label className="block text-sm font-medium text-midnight">Geburtsdatum</label>
-                    <input
-                      type="date"
-                      className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender text-sm"
-                      value={astroForm.birthDate}
-                      onChange={e => setAstroForm(f => ({ ...f, birthDate: e.target.value }))}
-                      required
-                    />
-                    <label className="block text-sm font-medium text-midnight">Geburtszeit</label>
-                    <input
-                      type="time"
-                      className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender text-sm"
-                      value={astroForm.birthTime}
-                      onChange={e => setAstroForm(f => ({ ...f, birthTime: e.target.value }))}
-                      required
-                    />
-                    <label className="block text-sm font-medium text-midnight">Geburtsort</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-lavender/30 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-lavender text-sm"
-                        value={astroForm.birthPlace}
-                        onChange={handleBirthPlaceInput}
-                        autoComplete="off"
-                        required
-                        placeholder="Geburtsort"
-                      />
-                      {birthPlaceSuggestions.length > 0 && (
-                        <ul className="absolute z-10 left-0 right-0 bg-white border border-lavender/30 rounded-xl mt-1 max-h-48 overflow-y-auto shadow-lg">
-                          {birthPlaceSuggestions.map((suggestion, idx) => (
-                            <li
-                              key={idx}
-                              className="px-3 py-2 cursor-pointer hover:bg-lavender/10 text-midnight text-xs"
-                              onClick={() => handleBirthPlaceSelect(suggestion)}
-                            >
-                              {suggestion}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    {astroFormError && <div className="text-red-600 text-xs mt-2">{astroFormError}</div>}
-                    <button
-                      type="submit"
-                      className="mt-2 px-4 py-2 rounded-xl bg-lavender text-white font-medium shadow hover:bg-lavender/80 transition text-sm"
-                      disabled={astroFormLoading}
-                    >
-                      {astroFormLoading ? 'Speichere…' : 'Astro-Daten speichern'}
-                    </button>
-                  </form>
-                </>
-              ) : (isAstroReady(userAstroData, userData?.astrology) && !isAstroReady(partnerAstroData, partnerData?.astrology)) ? (
-                <div className="mb-3 text-midnight/80 text-sm text-center font-medium">
-                  Dein Partner hat seine Geburtsdaten noch nicht eingegeben. Sobald beide Daten vorhanden sind, erstellt Lumo eure astrologische Analyse!
-                </div>
-              ) : (analysis && analysis.astrology ? (
-                <>
-                  {/* Chat-Bubble mit Emoji statt Lumo-Avatar für Astro */}
-                  <div className="flex items-start gap-3 bg-lavender/10 p-4 rounded-t-xl mb-2">
-                    <span className="text-2xl">🔮</span>
-                    <div className="text-midnight/90 text-base">
-                      {(() => {
-                        const s1 = analysis.astrology.gemeinsameStaerken || '';
-                        const s2 = analysis.astrology.emotionaleDynamik || '';
-                        const sentences = (s1 + ' ' + s2).match(/[^.!?]+[.!?]+/g) || [s1 + ' ' + s2];
-                        return sentences.slice(0, 2).join(' ').trim();
-                      })()}
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row gap-4 p-2">
-                    <div className="bg-green-50 rounded-xl p-4 flex-1">
-                      <div className="font-semibold text-green-700 flex items-center gap-2 mb-1 text-lg"><span>💪</span>Astro-Stärken</div>
-                      <ul className="list-disc pl-5 text-midnight/90 text-sm">
-                        {analysis.astrology.gemeinsameStaerken &&
-                          !['ausführlicher fließtext', 'in euren gemeinsamen astrologischen stärken zeigt sich eine tiefe verbundenheit'].some(placeholder => analysis.astrology.gemeinsameStaerken.toLowerCase().includes(placeholder)) &&
-                          analysis.astrology.gemeinsameStaerken
-                            .split(/\n|•|-/)
-                            .map(s => s.trim())
-                            .filter(Boolean)
-                            .map((s, i) => <li key={i}>{s}</li>)}
-                      </ul>
-                    </div>
-                    <div className="bg-amber-50 rounded-xl p-4 flex-1">
-                      <div className="font-semibold text-amber-700 flex items-center gap-2 mb-1 text-lg"><span>🌱</span>Astro-Wachstum</div>
-                      <ul className="list-disc pl-5 text-midnight/90 text-sm">
-                        {analysis.astrology.wachstumspotenzial &&
-                          !['ausführlicher fließtext', 'euer wachstumspotenzial liegt in der vertiefung eurer emotionalen bindung', 'bewusst an eurer individuellen entwicklung und gemeinsamen zielen zu arbeiten'].some(placeholder => analysis.astrology.wachstumspotenzial.toLowerCase().includes(placeholder)) &&
-                          analysis.astrology.wachstumspotenzial
-                            .split(/\n|•|-/)
-                            .map(s => s.trim())
-                            .filter(Boolean)
-                            .map((s, i) => <li key={i}>{s}</li>)}
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <button
-                      onClick={() => setShowAstroAnalysis(true)}
-                      className="px-5 py-2 rounded-xl bg-lavender text-white font-medium shadow hover:bg-lavender/80 transition"
-                    >
-                      Ausführliche Astroanalyse
-                    </button>
-                  </div>
-                </>
-              ) : null)
-            )}
-          </div>
-        </Card>
-      )}
-      {/* Zweispaltiges Layout: Links Reflexion, rechts Aktionen */}
-      <div className="flex flex-col md:flex-row gap-6 w-full max-w-5xl mx-auto mt-6">
-        {/* Linke Spalte: WeeklyReflectionCard + Jahrestag */}
-        <div className="flex-1 min-w-[320px] flex flex-col gap-6">
-          <WeeklyReflectionCard userId={userId || ''} partnerId={partnerId || undefined} />
-          <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 text-sm w-full">
-            <Gift className="w-6 h-6 text-lavender" />
-            <p className="text-midnight">Jahrestag in 3 Tagen – <strong>Zeit für etwas Besonderes?</strong></p>
-          </div>
-        </div>
-        {/* Rechte Spalte: Aktionen */}
-        <div className="flex-1 min-w-[280px] flex flex-col gap-6">
-          <Card title="Ich denk an dich" className="">
-            <div className="py-4 px-2 flex flex-col items-center justify-center">
-              <button 
-                onClick={sendThinkingOfYouNotification}
-                disabled={notificationSent}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  notificationSent 
-                  ? 'bg-lavender' 
-                  : 'bg-gradient-to-br from-lavender to-navlink hover:shadow-lg hover:scale-105'
-                }`}
-              >
-                {notificationSent ? (
-                  <Check className="w-7 h-7 text-white" />
+                  </>
                 ) : (
-                  <Heart className="w-7 h-7 text-white" />
+                  <div className="text-midnight/60 py-4 sm:py-6 text-center text-sm sm:text-base">Noch keine Analyse verfügbar.</div>
                 )}
-              </button>
-              <p className="text-xs text-center text-midnight/80 mt-3">
-                {notificationSent 
-                  ? "Nachricht gesendet!" 
-                  : "Push-Mitteilung an deinen Partner senden"}
-              </p>
+              </div>
+            </Card>
+          )}
+
+          {/* Vibe Check - Rechts auf Desktop */}
+          <div className={`${partnerLinked ? '' : 'sm:col-span-2'} space-y-2 sm:space-y-4`}>
+            <WeeklyReflectionCard
+              userId={userId || ''}
+              partnerId={partnerId || undefined}
+              partnerName={partnerName || undefined}
+              onEarnFeathers={addFeathers}
+            />
+
+            {/* Thinking of You - kompakter auf Mobile, größer auf Desktop */}
+            <div className="bg-white rounded-lg shadow-sm p-2 sm:p-4">
+              <div className="flex items-center gap-1 text-[10px] sm:text-sm text-amber-600 mb-2">
+                <div className="bg-white/80 rounded-full p-0.5 shadow-inner">
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="w-2.5 h-2.5 sm:w-4 sm:h-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <defs>
+                      <linearGradient id="feather-gradient-thinking" x1="12" y1="4" x2="12" y2="20" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#FFD700" />
+                        <stop offset="60%" stopColor="#FFA500" />
+                        <stop offset="100%" stopColor="#FF8C00" />
+                      </linearGradient>
+                      <linearGradient id="feather-shine-thinking" x1="8" y1="4" x2="8" y2="13" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#FFF5CC" />
+                        <stop offset="100%" stopColor="#FFD700" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
+                      fill="url(#feather-gradient-thinking)"
+                      className="drop-shadow-lg"
+                    />
+                    <path
+                      d="M12 4c-.3 0-.5.1-.7.3l-7 7c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7-7c.4-.4.4-1 0-1.4-.2-.2-.4-.3-.7-.3z"
+                      fill="url(#feather-shine-thinking)"
+                      className="drop-shadow-md"
+                    />
+                  </svg>
+                </div>
+                <span>+{FEATHER_REWARDS.THINKING_OF_YOU} Federn</span>
+              </div>
+
+              {notificationDisabled ? (
+                <div className="flex flex-col items-center mt-2">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-lavender/40 to-navlink/40 flex items-center justify-center mb-2">
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white opacity-50" />
+                  </div>
+                  <p className="text-xs sm:text-sm text-midnight/50">Heute schon gesendet</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <button
+                    onClick={sendThinkingOfYouNotification}
+                    disabled={notificationDisabled}
+                    className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      notificationDisabled
+                        ? 'bg-gradient-to-br from-lavender/40 to-navlink/40'
+                        : notificationSent
+                          ? 'bg-gradient-to-br from-green-400 to-green-500 scale-95'
+                          : 'bg-gradient-to-br from-lavender to-navlink hover:shadow-lg hover:scale-105'
+                    }`}
+                  >
+                    {notificationSent ? (
+                      <Check className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                    ) : (
+                      <Heart className={`w-4 h-4 sm:w-6 sm:h-6 text-white ${notificationDisabled ? 'opacity-50' : ''}`} />
+                    )}
+                  </button>
+                  {notificationSent ? (
+                    <p className="text-xs sm:text-sm text-green-600 font-medium mt-1">Nachricht gesendet!</p>
+                  ) : (
+                    <p className="text-xs sm:text-sm text-midnight/80 mt-1">Push-Mitteilung senden</p>
+                  )}
+                </div>
+              )}
             </div>
-          </Card>
-          <Card title="Vorgeschlagene Aktivitäten" className="">
-            <div className="grid grid-cols-1 gap-2">
-              <ActivityCard 
-                title="Gemeinsam kochen" 
-                description="Probiert dieses Wochenende ein neues Rezept aus"
-                icon={<span className="text-2xl">🍲</span>}
-              />
-              <ActivityCard 
-                title="Film-Abend" 
-                description="Schaut euch einen Film aus eurer gemeinsamen Liste an"
-                icon={<span className="text-2xl">🎬</span>}
-              />
-              <ActivityCard 
-                title="Kommunikations-Challenge" 
-                description="5 Minuten aktives Zuhören ohne Unterbrechung"
-                icon={<span className="text-2xl">🗣️</span>}
-              />
-            </div>
-          </Card>
+
+            {/* Jahrestags-Hinweis - Original-Layout beibehalten */}
+            {relationshipStartDate && (
+              <div className="bg-white rounded-lg p-2 sm:p-4 shadow-sm flex items-center gap-1.5 sm:gap-3 text-[10px] sm:text-sm mt-2">
+                <Gift className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-lavender flex-shrink-0" />
+                {(() => {
+                  const anniversary = getNextAnniversary();
+                  if (!anniversary) return null;
+
+                  if (anniversary.daysUntil === 0) {
+                    // Automatisch Federn vergeben am Jahrestag
+                    if (onFeatherBalanceChange) {
+                      onFeatherBalanceChange(100, 'anniversary_reward');
+                    }
+                    return (
+                      <div>
+                        <p className="text-midnight">
+                          <strong>Heute ist euer {anniversary.years}. Jahrestag!</strong> 🎉
+                        </p>
+                        <p className="text-amber-600 text-[10px] sm:text-sm mt-0.5 sm:mt-1 flex items-center gap-1 sm:gap-2">
+                          <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 sm:w-4 sm:h-4">
+                            <path
+                              d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
+                              fill="url(#feather-gradient-anniversary)"
+                              className="drop-shadow-lg"
+                            />
+                          </svg>
+                          +100 Federn als Geschenk! 🎁
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <p className="text-midnight">
+                      {anniversary.daysUntil === 1 ? (
+                        <>Morgen ist euer <strong>{anniversary.years}. Jahrestag</strong> – Zeit für etwas Besonderes? 💝</>
+                      ) : (
+                        <>Noch {anniversary.daysUntil} Tage bis zu eurem <strong>{anniversary.years}. Jahrestag</strong> – Zeit zu planen? 💭</>
+                      )}
+                    </p>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* MODALS für ausführliche Analysen */}
+      {/* Modals */}
       {showFullAnalysis && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-xl relative animate-fadeIn overflow-y-auto max-h-[90vh]">
-            <button
-              className="absolute top-4 right-4 text-midnight/60 hover:text-midnight text-2xl"
-              onClick={() => setShowFullAnalysis(false)}
-              aria-label="Schließen"
-            >
-              ✕
-            </button>
-            <h2 className="text-2xl font-bold text-navlink mb-6 flex items-center gap-2"><span>💜</span>Ausführliche Beziehungsanalyse</h2>
-            <div className="space-y-5 text-midnight/90 text-base">
-              <div className="bg-lavender/10 rounded-xl p-4 mb-2">
-                <div className="font-semibold text-lavender flex items-center gap-2 mb-1 text-lg"><span>📝</span>Zusammenfassung</div>
-                <div>{analysis?.summary}</div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-green-50 rounded-xl p-4">
-                  <div className="font-semibold text-green-700 flex items-center gap-2 mb-1 text-lg"><span>💪</span>Stärken</div>
-                  <div>{analysis?.strengths?.join(' ')}</div>
-                </div>
-                <div className="bg-amber-50 rounded-xl p-4">
-                  <div className="font-semibold text-amber-700 flex items-center gap-2 mb-1 text-lg"><span>🌱</span>Wachstum</div>
-                  <div>{analysis?.growthAreas?.join(' ')}</div>
-                </div>
-              </div>
-              <div className="bg-lavender/10 rounded-xl p-4">
-                <div className="font-semibold text-lavender flex items-center gap-2 mb-1 text-lg"><span>🗣️</span>Kommunikation</div>
-                <div>{analysis?.communication}</div>
-              </div>
-              <div className="bg-lavender/10 rounded-xl p-4">
-                <div className="font-semibold text-lavender flex items-center gap-2 mb-1 text-lg"><span>🔗</span>Bindung</div>
-                <div>{analysis?.attachment}</div>
-              </div>
-              <div className="bg-lavender/10 rounded-xl p-4">
-                <div className="font-semibold text-lavender flex items-center gap-2 mb-1 text-lg"><span>💎</span>Werte</div>
-                <div>{analysis?.values}</div>
-              </div>
-              <div className="bg-lavender/10 rounded-xl p-4">
-                <div className="font-semibold text-lavender flex items-center gap-2 mb-1 text-lg"><span>💡</span>Tipp</div>
-                <div>{analysis?.tip}</div>
+        <>
+          {/* Mobile Version */}
+          <div className="fixed inset-0 bg-white z-20 overflow-auto sm:hidden">
+            {/* Header */}
+            <div className="sticky top-0 bg-white p-4 border-b border-lavender/10">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">💜</span>
+                <h2 className="text-xl font-bold text-[#332d6e]">Ausführliche Beziehungsanalyse</h2>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-      {showAstroAnalysis && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-xl relative animate-fadeIn overflow-y-auto max-h-[90vh]">
-            <button
-              className="absolute top-4 right-4 text-midnight/60 hover:text-midnight text-2xl"
-              onClick={() => setShowAstroAnalysis(false)}
-              aria-label="Schließen"
-            >
-              ✕
-            </button>
-            <h2 className="text-2xl font-bold text-navlink mb-6 flex items-center gap-2"><span>🔮</span>Ausführliche Astroanalyse</h2>
-            {analysis?.astrology && (
-              <div className="space-y-6 text-midnight/90 text-base">
-                {/* Persönlichkeiten kompakt */}
-                <div>
-                  <div className="font-semibold text-lg mb-2 flex items-center gap-2"><span>🧿</span>Einzelanalyse & Persönlichkeiten</div>
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="flex-1 bg-white rounded-xl p-4 border border-lavender/20">
-                      <div className="font-bold text-lg mb-1">{analysis.astrology.personAName}</div>
-                      <div className="text-sm text-midnight/70 mb-1">{formatBirthInfo(analysis.astrology.personABirth)}</div>
-                      <div className="flex gap-2 text-sm mb-1">
-                        <span>☀️ Sternzeichen: {cleanAstroValue(analysis.astrology.personASonne)}</span>
-                        <span>🌙 Mondzeichen: {cleanAstroValue(analysis.astrology.personAMond)}</span>
-                        <span>⬆️ Aszendent: {cleanAstroValue(analysis.astrology.personAAszendent)}</span>
-                      </div>
-                      <div className="text-midnight">{analysis.astrology.personACharakterKurz}</div>
-                    </div>
-                    <div className="flex-1 bg-white rounded-xl p-4 border border-lavender/20">
-                      <div className="font-bold text-lg mb-1">{analysis.astrology.personBName}</div>
-                      <div className="text-sm text-midnight/70 mb-1">{formatBirthInfo(analysis.astrology.personBBirth)}</div>
-                      <div className="flex gap-2 text-sm mb-1">
-                        <span>☀️ Sternzeichen: {cleanAstroValue(analysis.astrology.personBSonne)}</span>
-                        <span>🌙 Mondzeichen: {cleanAstroValue(analysis.astrology.personBMond)}</span>
-                        <span>⬆️ Aszendent: {cleanAstroValue(analysis.astrology.personBAszendent)}</span>
-                      </div>
-                      <div className="text-midnight">{analysis.astrology.personBCharakterKurz}</div>
-                    </div>
-                  </div>
+
+            {/* Content */}
+            <div className="p-4">
+              {/* Zusammenfassung */}
+              <div className="bg-[#f8f5ff] rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">📝</span>
+                  <h3 className="text-base font-semibold">Zusammenfassung</h3>
                 </div>
-                {/* Beziehungsdynamik */}
-                <div>
-                  <div className="font-semibold text-lg mb-2 flex items-center gap-2"><span>❤️</span>Synastrie & Beziehungsdynamik</div>
-                  <div>{analysis.astrology.synastrie && splitToParagraphs(analysis.astrology.synastrie)}</div>
-                </div>
-                {/* Karmische Aspekte */}
-                <div>
-                  <div className="font-semibold text-lg mb-2 flex items-center gap-2"><span>🌀</span>Karmische & Seelenaspekte</div>
-                  <div>{analysis.astrology.karmisch && splitToParagraphs(analysis.astrology.karmisch)}</div>
-                </div>
-                {/* Zusammenfassung */}
-                <div>
-                  <div className="font-semibold text-lg mb-2 flex items-center gap-2"><span>🌟</span>Zusammenfassung</div>
-                  <div>{analysis.astrology.zusammenfassung && splitToParagraphs(analysis.astrology.zusammenfassung)}</div>
-                </div>
-                {/* Stärken & Herausforderungen */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-green-50 rounded-xl p-4">
-                    <div className="font-semibold text-green-700 flex items-center gap-2 mb-1 text-lg"><span>💪</span>Stärken</div>
-                    <div className="text-midnight/90 text-sm">{analysis.astrology.gemeinsameStaerken && splitToParagraphs(analysis.astrology.gemeinsameStaerken)}</div>
-                  </div>
-                  <div className="bg-amber-50 rounded-xl p-4">
-                    <div className="font-semibold text-amber-700 flex items-center gap-2 mb-1 text-lg"><span>🌱</span>Herausforderungen</div>
-                    <div className="text-midnight/90 text-sm">{analysis.astrology.wachstumspotenzial && splitToParagraphs(analysis.astrology.wachstumspotenzial)}</div>
-                  </div>
-                </div>
-                {/* Tipps */}
-                <div>
-                  <div className="font-semibold text-lg mb-2 flex items-center gap-2"><span>💡</span>Tipps</div>
-                  <div>{analysis.astrology.tipps && splitTipsWithDot(analysis.astrology.tipps)}</div>
+                <div className="text-sm text-gray-700 leading-relaxed">
+                  {analysis?.summary}
                 </div>
               </div>
-            )}
+
+              {/* Kommunikation */}
+              <div className="bg-[#f8f5ff] rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">💭</span>
+                  <h3 className="text-base font-semibold">Kommunikation</h3>
+                </div>
+                <div className="text-sm text-gray-700 leading-relaxed">
+                  {analysis?.communication}
+                </div>
+              </div>
+
+              {/* Stärken */}
+              <div className="bg-[#f3fff5] rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">💪</span>
+                  <h3 className="text-base font-semibold text-green-700">Stärken</h3>
+                </div>
+                <div className="space-y-2">
+                  {analysis?.strengths?.map((s, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="text-sm text-gray-700">•</span>
+                      <span className="text-sm text-gray-700">{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Wachstum */}
+              <div className="bg-[#fff8f0] rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">🌱</span>
+                  <h3 className="text-base font-semibold text-amber-700">Wachstum</h3>
+                </div>
+                <div className="space-y-2">
+                  {analysis?.growthAreas?.map((g, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="text-sm text-gray-700">•</span>
+                      <span className="text-sm text-gray-700">{g}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bindung */}
+              <div className="bg-[#f8f5ff] rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">🔗</span>
+                  <h3 className="text-base font-semibold">Bindung</h3>
+                </div>
+                <div className="text-sm text-gray-700 leading-relaxed">
+                  {analysis?.attachment}
+                </div>
+              </div>
+
+              {/* Werte */}
+              <div className="bg-[#f8f5ff] rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">💎</span>
+                  <h3 className="text-base font-semibold">Werte</h3>
+                </div>
+                <div className="text-sm text-gray-700 leading-relaxed">
+                  {analysis?.values}
+                </div>
+              </div>
+
+              {/* Platzhalter für das Menü */}
+              <div className="h-24 bg-white" aria-hidden="true"></div>
+            </div>
           </div>
-        </div>
+
+          {/* Desktop Version - bleibt unverändert */}
+          <div 
+            className="hidden sm:flex fixed inset-0 bg-black/40 z-40 items-center justify-center p-4"
+            onClick={() => setShowFullAnalysis(false)}
+          >
+            <div 
+              className="bg-white rounded-3xl p-8 w-full max-w-[1100px] shadow-xl relative animate-fadeIn overflow-y-auto max-h-[95vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-8">
+                <span className="text-2xl sm:text-3xl">💜</span>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#332d6e]">Ausführliche Beziehungsanalyse</h2>
+              </div>
+
+              {/* Content Grid - Stack auf Mobile, Grid auf Desktop */}
+              <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-[1fr_1fr] sm:gap-4">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  {/* Zusammenfassung */}
+                  <div className="bg-[#f8f5ff] rounded-xl sm:rounded-3xl p-4 sm:p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base sm:text-lg">📝</span>
+                      <h3 className="text-base sm:text-lg font-semibold">Zusammenfassung</h3>
+                    </div>
+                    <div className="text-sm text-gray-700 leading-relaxed">
+                      {analysis?.summary}
+                    </div>
+                  </div>
+
+                  {/* Kommunikation */}
+                  <div className="bg-[#f8f5ff] rounded-xl sm:rounded-3xl p-4 sm:p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base sm:text-lg">💭</span>
+                      <h3 className="text-base sm:text-lg font-semibold">Kommunikation</h3>
+                    </div>
+                    <div className="text-sm text-gray-700 leading-relaxed">
+                      {analysis?.communication}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  {/* Stärken & Wachstum */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-[#f3fff5] rounded-xl sm:rounded-3xl p-4 sm:p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base sm:text-lg">💪</span>
+                        <h3 className="text-base sm:text-lg font-semibold text-green-700">Stärken</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {analysis?.strengths?.map((s, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-sm text-gray-700">•</span>
+                            <span className="text-sm text-gray-700">{s}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-[#fff8f0] rounded-xl sm:rounded-3xl p-4 sm:p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base sm:text-lg">🌱</span>
+                        <h3 className="text-base sm:text-lg font-semibold text-amber-700">Wachstum</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {analysis?.growthAreas?.map((g, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-sm text-gray-700">•</span>
+                            <span className="text-sm text-gray-700">{g}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bindung & Werte */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-[#f8f5ff] rounded-xl sm:rounded-3xl p-4 sm:p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base sm:text-lg">🔗</span>
+                        <h3 className="text-base sm:text-lg font-semibold">Bindung</h3>
+                      </div>
+                      <div className="text-sm text-gray-700 leading-relaxed">
+                        {analysis?.attachment}
+                      </div>
+                    </div>
+
+                    <div className="bg-[#f8f5ff] rounded-xl sm:rounded-3xl p-4 sm:p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base sm:text-lg">💎</span>
+                        <h3 className="text-base sm:text-lg font-semibold">Werte</h3>
+                      </div>
+                      <div className="text-sm text-gray-700 leading-relaxed">
+                        {analysis?.values}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowFullAnalysis(false)}
+                className="absolute top-3 right-3 text-midnight/60 hover:text-midnight p-1"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Floating Coach-Button unten rechts */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          className="bg-lavender text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center text-3xl hover:bg-lavender/80 transition"
-          onClick={() => setShowCoach(true)}
-          aria-label="Coach-Chat öffnen"
-        >
-          💬
-        </button>
-      </div>
+      {/* Chat-Button entfernt */}
 
       {showCoach && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setShowCoach(false)}>
           <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden p-0" onClick={e => e.stopPropagation()}>
-            <LumoCoach userId={userId || ''} userName={userName} partnerName={partnerName || ''} partnerLinked={partnerLinked} onClose={() => setShowCoach(false)} />
+            <LumoHerzensfluesterer 
+              userId={userId || ''} 
+              userName={userName} 
+              partnerName={partnerName || ''} 
+              partnerLinked={partnerLinked} 
+              onClose={() => {
+                setShowCoach(false);
+                // Setze showTypeSelector auf true, wenn der Chat geschlossen wird
+                if (window.LumoChat) {
+                  window.LumoChat.setShowTypeSelector(true);
+                }
+              }} 
+            />
           </div>
         </div>
       )}
@@ -1003,30 +1171,60 @@ const Dashboard: React.FC<DashboardProps> = ({ userId }) => {
           </div>
         </div>
       )}
+
+      {/* Shop Modal */}
+      {showShop && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setShowShop(false)}>
+          <div className="w-full" onClick={e => e.stopPropagation()}>
+            <Shop featherBalance={featherBalance} onClose={() => setShowShop(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-lavender/20 sm:hidden z-50">
+        <div className="flex justify-around items-center py-2">
+          <button
+            onClick={() => {
+              setActiveTab('home');
+              setShowFullAnalysis(false);  // Schließe die Analyse
+            }}
+            className={`flex flex-col items-center gap-1 ${
+              activeTab === 'home' ? 'text-navlink' : 'text-midnight/60'
+            }`}
+          >
+            <Home className="w-6 h-6" />
+            <span className="text-[10px]">Home</span>
+          </button>
+          <button
+            onClick={handleProfile}
+            className={`flex flex-col items-center gap-1 ${
+              activeTab === 'profile' ? 'text-navlink' : 'text-midnight/60'
+            }`}
+          >
+            <UserIcon className="w-6 h-6" />
+            <span className="text-[10px]">Profil</span>
+          </button>
+          <button
+            onClick={handleSettings}
+            className={`flex flex-col items-center gap-1 ${
+              activeTab === 'settings' ? 'text-navlink' : 'text-midnight/60'
+            }`}
+          >
+            <SettingsIcon className="w-6 h-6" />
+            <span className="text-[10px]">Einstellungen</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex flex-col items-center gap-1 text-midnight/60"
+          >
+            <LogOut className="w-6 h-6" />
+            <span className="text-[10px]">Abmelden</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };
-
-function ActivityCard({ title, description, icon }: { title: string; description: string; icon: React.ReactNode }) {
-  return (
-    <div className="bg-[#f3f0fa] p-4 rounded-xl flex items-start gap-3 hover:bg-[#ebe5f7] transition cursor-pointer">
-      <div className="mt-1">{icon}</div>
-      <div>
-        <h3 className="font-medium text-sm text-midnight">{title}</h3>
-        <p className="text-xs text-midnight/70 mt-1">{description}</p>
-      </div>
-    </div>
-  );
-}
-
-// Komponente für die kompakte Astro-Info-Card
-function AstroSummaryDisplay({ astrologyText }: { astrologyText: string }) {
-  // Extrahiere die Zusammenfassung (z.B. die ersten 2-3 Sätze)
-  const sentences = astrologyText.match(/[^.!?]+[.!?]+/g) || [astrologyText];
-  const summary = sentences.slice(0, 3).join(' ').trim();
-  return (
-    <div className="text-midnight/90 text-base mb-2">{summary}</div>
-  );
-}
 
 export default Dashboard; 

@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Grundlegende Stile für die gesamte Anwendung */
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-softgray text-midnight;
+  background-color: #F5F5F5;
+  color: #18181B;
 }
 
 code {
@@ -87,7 +87,4 @@ a:hover {
 .btn-secondary:hover {
   background-color: #cbd5e1;
   text-decoration: none;
-}
-
-/* Anpassungen für Komponenten, die nicht direkt in Tailwind migriert wurden */
-/* Komponentenstile können hier überschrieben werden */ 
+} 

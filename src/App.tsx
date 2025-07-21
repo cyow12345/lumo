@@ -11,7 +11,7 @@ import SidebarItem from './components/SidebarItem';
 import Card from './components/Card';
 import Dashboard from './components/Dashboard';
 import ThinkingOfYou from './components/ThinkingOfYou';
-import LumoCoach from './components/LumoCoach';
+import LumoHerzensfluesterer from './components/LumoHerzensfluesterer';
 import MoodTrends from './components/MoodTrends';
 import Achievements from './components/Achievements';
 import Settings from './components/Settings';
@@ -22,6 +22,8 @@ import SurveyContainer from './components/SurveyContainer';
 import AssessmentList from './components/AssessmentList';
 import OnboardingFlow from './components/OnboardingFlow';
 import { Home, MessageCircleHeart, SmilePlus, BarChart, Notebook, CheckSquare, Trophy, Settings as SettingsIcon, LogOut, Heart, Calendar, Clock, Brain, BookOpen, User, Users, ClipboardList } from 'lucide-react';
+import SingleChat from './components/SingleChat';
+import PairChat from './components/PairChat';
 // Verwende den public-Pfad
 const lumoLogo = '/lumo_logo.png';
 
@@ -38,7 +40,7 @@ interface Session {
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLoginOnboarding, setShowLoginOnboarding] = useState(false);
@@ -54,6 +56,32 @@ function App() {
   const [daysTogether, setDaysTogether] = useState<number>(0);
   const [partnerName, setPartnerName] = useState<string>('');
   const [partnerId, setPartnerId] = useState<string | null>(null);
+  const [featherBalance, setFeatherBalance] = useState<number>(0);
+  const [showShop, setShowShop] = useState(false);
+  const [userName, setUserName] = useState<string>('');
+
+  // Funktion zum Laden des Federn-Stands
+  const loadFeatherBalance = async () => {
+    if (!session?.user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('golden_feather_balance')
+        .select('balance')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (error) throw error;
+      setFeatherBalance(data?.balance || 0);
+    } catch (err) {
+      console.error('Fehler beim Laden der Federn:', err);
+    }
+  };
+
+  // Lade den Federn-Stand beim Start und wenn sich die Session ändert
+  useEffect(() => {
+    loadFeatherBalance();
+  }, [session?.user?.id]);
 
   useEffect(() => {
     // Prüfe, ob ein aktiver Session existiert
@@ -123,6 +151,44 @@ function App() {
         });
     }
   }, [session]);
+
+  // Lade Benutzerdaten beim Start
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const loadUserData = async () => {
+      try {
+        // Lade Benutzerprofil
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('name, partner_id')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!profileError && profile) {
+          setUserName(profile.name || '');
+          setPartnerLinked(!!profile.partner_id);
+
+          // Wenn Partner verknüpft ist, lade Partnerdaten
+          if (profile.partner_id) {
+            const { data: partnerProfile, error: partnerError } = await supabase
+              .from('user_profiles')
+              .select('name')
+              .eq('id', profile.partner_id)
+              .single();
+
+            if (!partnerError && partnerProfile) {
+              setPartnerName(partnerProfile.name || '');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden der Benutzerdaten:', error);
+      }
+    };
+
+    loadUserData();
+  }, [session?.user?.id]);
 
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -268,7 +334,7 @@ function App() {
     if (!session) return null;
     switch (activeTab) {
       case 'home':
-        return <Dashboard userId={session.user.id} />;
+        return <Dashboard userId={session.user.id} featherBalance={featherBalance} onFeatherBalanceChange={loadFeatherBalance} />;
       case 'mood':
         return <MoodTracker user={session.user} />;
       case 'journal':
@@ -280,7 +346,19 @@ function App() {
       case 'thinking':
         return <ThinkingOfYou userId={session.user.id} />;
       case 'coach':
-        return <LumoCoach userId={session.user.id} partnerLinked={partnerLinked} partnerName={partnerName || undefined} />;
+        return (
+          <div className="fixed inset-0 bg-white sm:relative sm:p-4">
+            <div className="h-[calc(100vh-64px)] sm:h-auto sm:bg-white sm:rounded-2xl sm:shadow-sm sm:max-w-2xl sm:mx-auto">
+              <LumoHerzensfluesterer 
+                userId={session.user.id} 
+                userName={userName} 
+                partnerName={partnerName} 
+                partnerLinked={partnerLinked}
+                key={activeTab}
+              />
+            </div>
+          </div>
+        );
       case 'trends':
         return <MoodTrends user={session.user} />;
       case 'achievements':
@@ -291,20 +369,8 @@ function App() {
         return <RelationshipViewer userId={session.user.id} />;
       case 'profile':
         return <Profile userId={session.user.id} />;
-      case 'assessments':
-        if (showSurvey && selectedAssessment) {
-          return <SurveyContainer 
-            assessment={selectedAssessment} 
-            onComplete={() => setShowSurvey(false)} 
-            onCancel={() => setShowSurvey(false)}
-          />;
-        }
-        return <AssessmentList onSelectAssessment={(assessment) => {
-          setSelectedAssessment(assessment);
-          setShowSurvey(true);
-        }} />;
       default:
-        return <Dashboard userId={session.user.id} />;
+        return null;
     }
   };
 
@@ -353,7 +419,7 @@ function App() {
                 setShowOnboarding(true);
               }}
             >
-              Jetzt starten
+              Anfangen
             </button>
             
             {/* Login-Formular direkt eingebaut statt Button */}
@@ -395,42 +461,6 @@ function App() {
             </div>
           </div>
         </div>
-        
-        {/* Info-Karten */}
-        <div className="max-w-4xl w-full flex flex-col md:flex-row gap-6 px-4">
-          <div className="flex-1 bg-[#f7f2ff] p-6 rounded-2xl shadow-md border border-lavender/10 transform hover:-translate-y-1 transition-transform">
-            <div className="flex justify-center mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-lavender to-navlink rounded-full flex items-center justify-center text-white">
-                <Brain className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-center font-bold text-lg mb-2 text-navlink">KI-gestützte Analyse</h3>
-            <p className="text-center text-midnight font-medium mb-1">Lumos Köpfchen denkt mit</p>
-            <p className="text-center text-sm text-midnight/70">Mit seiner feinen KI-Nase erkennt Lumo eure Gefühle und Muster.</p>
-          </div>
-          
-          <div className="flex-1 bg-[#f7f2ff] p-6 rounded-2xl shadow-md border border-lavender/10 transform hover:-translate-y-1 transition-transform">
-            <div className="flex justify-center mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-lavender to-navlink rounded-full flex items-center justify-center text-white">
-                <Heart className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-center font-bold text-lg mb-2 text-navlink">Lumo kennt euch</h3>
-            <p className="text-center text-midnight font-medium mb-1 whitespace-nowrap">Personalisierte Beziehungstipps</p>
-            <p className="text-center text-sm text-midnight/70">Er gibt euch liebevolle Tipps, die genau zu eurer Beziehung passen.</p>
-          </div>
-          
-          <div className="flex-1 bg-[#f7f2ff] p-6 rounded-2xl shadow-md border border-lavender/10 transform hover:-translate-y-1 transition-transform">
-            <div className="flex justify-center mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-lavender to-navlink rounded-full flex items-center justify-center text-white">
-                <MessageCircleHeart className="w-6 h-6" />
-              </div>
-            </div>
-            <h3 className="text-center font-bold text-lg mb-2 text-navlink">Präventiver Ansatz</h3>
-            <p className="text-center text-midnight font-medium mb-1">Kuschelig statt kritisch</p>
-            <p className="text-center text-sm text-midnight/70">Sanft und mit viel Herz zeigt Lumo euch, wo's hakt.</p>
-          </div>
-        </div>
       </div>
     );
   }
@@ -439,48 +469,51 @@ function App() {
   return (
     <div className="flex font-sans text-midnight bg-[#f7f2ff] min-h-screen">
       {/* Sidebar nur auf Desktop sichtbar */}
-      <aside className="hidden sm:flex w-60 bg-navlink text-white flex-col p-4 space-y-6 fixed h-full shadow-lg z-10">
-        <div className="flex items-center gap-3 mt-2 text-2xl font-bold">
-          <div className="w-9 h-9 flex items-center justify-center">
-            <img src={lumoLogo} alt="Lumo Logo" className="w-9 h-9" />
+      <aside className="hidden sm:flex w-60 bg-navlink text-white flex-col p-4 fixed h-full shadow-lg z-10">
+        <div className="flex flex-col">
+          <div className="flex -mt-10">
+            <div className="w-[120px] h-[120px] flex items-center">
+              <img src="/logo_dash1.png" alt="Lumo Logo" className="w-full h-full object-contain" />
+            </div>
           </div>
-          Lumo
-        </div>
-        <nav className="flex flex-col space-y-1.5 mt-8 text-sm">
-          <div onClick={() => setActiveTab('home')} className="cursor-pointer">
-            <SidebarItem lucideIcon={Home} label="Dashboard" active={activeTab === 'home'} />
+          <nav className="flex flex-col space-y-1.5 -mt-2 text-sm">
+            <div onClick={() => setActiveTab('home')} className="cursor-pointer">
+              <SidebarItem lucideIcon={Home} label="Dashboard" active={activeTab === 'home'} />
+            </div>
+            <div 
+              onClick={() => {
+                if (activeTab === 'coach') {
+                  // Wenn wir bereits im Chat sind, erzwinge ein Neurendern
+                  setActiveTab('home');
+                  setTimeout(() => setActiveTab('coach'), 0);
+                } else {
+                  setActiveTab('coach');
+                }
+              }} 
+              className="cursor-pointer"
+            >
+              <SidebarItem lucideIcon={MessageCircleHeart} label="Lumo Chat" active={activeTab === 'coach'} />
+            </div>
+            <div onClick={() => setActiveTab('profile')} className="cursor-pointer">
+              <SidebarItem lucideIcon={User} label="Profil" active={activeTab === 'profile'} />
+            </div>
+          </nav>
+          <div className="mt-auto mb-4">
+            <div onClick={() => setActiveTab('settings')} className="cursor-pointer">
+              <SidebarItem lucideIcon={SettingsIcon} label="Einstellungen" active={activeTab === 'settings'} />
+            </div>
+            <button 
+              onClick={handleLogout} 
+              className="mt-4 w-full text-sm text-white/60 hover:text-white transition-colors duration-200 flex items-center justify-center gap-2 py-2 rounded-xl hover:bg-white/5"
+            >
+              <LogOut className="w-4 h-4" /> Abmelden
+            </button>
           </div>
-          <div onClick={() => setActiveTab('coach')} className="cursor-pointer">
-            <SidebarItem lucideIcon={MessageCircleHeart} label="Coach" active={activeTab === 'coach'} />
-          </div>
-          {/* <div onClick={() => setActiveTab('mood')} className="cursor-pointer">
-            <SidebarItem lucideIcon={SmilePlus} label="Stimmung" active={activeTab === 'mood'} />
-          </div> */}
-          <div onClick={() => setActiveTab('profile')} className="cursor-pointer">
-            <SidebarItem lucideIcon={User} label="Profil" active={activeTab === 'profile'} />
-          </div>
-        </nav>
-        <div className="mt-auto mb-4">
-          <div onClick={() => setActiveTab('settings')} className="cursor-pointer">
-            <SidebarItem lucideIcon={SettingsIcon} label="Einstellungen" active={activeTab === 'settings'} />
-          </div>
-          <button 
-            onClick={handleLogout} 
-            className="mt-4 w-full text-sm text-white/60 hover:text-white transition-colors duration-200 flex items-center justify-center gap-2 py-2 rounded-xl hover:bg-white/5"
-          >
-            <LogOut className="w-4 h-4" /> Abmelden
-          </button>
         </div>
       </aside>
-      {/* Mobiler Header */}
-      {/* <header className="flex sm:hidden items-center justify-center gap-2 bg-navlink text-white px-4 py-3 w-full fixed top-0 left-0 z-20 shadow">
-        <div className="w-9 h-9 flex items-center justify-center">
-          <img src={lumoLogo} alt="Lumo Logo" className="w-9 h-9" />
-        </div>
-        <span className="text-2xl font-bold">Lumo</span>
-      </header> */}
+
       {/* Main Content */}
-      <main className="flex-1 p-4 sm:p-8 space-y-6 sm:ml-60 pt-16 sm:pt-0">
+      <main className="flex-1 p-4 sm:p-8 space-y-6 sm:ml-60 pb-20 sm:pb-0">
         {/* Onboarding Overlay */}
         {(showOnboarding || showLoginOnboarding) && (
           <div className="fixed inset-0 bg-gradient-to-br from-navlink/30 to-lavender/30 backdrop-blur-lg flex items-center justify-center z-50 p-8 animate-fadeIn">
@@ -524,6 +557,66 @@ function App() {
           {renderComponent()}
         </div>
       </main>
+
+      {/* Mobile Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-lavender/20 sm:hidden z-50">
+        <div className="flex justify-around items-center py-2">
+          <button
+            onClick={() => {
+              setActiveTab('home');
+              if (typeof window !== 'undefined') {
+                // Sende ein Event an die Dashboard-Komponente
+                const event = new CustomEvent('closeAnalysis');
+                window.dispatchEvent(event);
+              }
+            }}
+            className={`flex flex-col items-center gap-1 ${
+              activeTab === 'home' ? 'text-navlink' : 'text-midnight/60'
+            }`}
+          >
+            <Home className="w-6 h-6" />
+            <span className="text-[10px]">Home</span>
+          </button>
+          <button 
+            onClick={() => {
+              if (activeTab === 'coach') {
+                // Wenn wir bereits im Chat sind, erzwinge ein Neurendern
+                setActiveTab('home');
+                setTimeout(() => setActiveTab('coach'), 0);
+              } else {
+                setActiveTab('coach');
+              }
+            }}
+            className={`flex flex-col items-center p-2 ${activeTab === 'coach' ? 'text-navlink' : 'text-midnight/60'}`}
+          >
+            <MessageCircleHeart className="w-6 h-6" />
+            <span className="text-xs mt-1">Chat</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('profile')} 
+            className={`flex flex-col items-center p-2 ${activeTab === 'profile' ? 'text-navlink' : 'text-midnight/60'}`}
+          >
+            <User className="w-6 h-6" />
+            <span className="text-xs mt-1">Profil</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('settings')} 
+            className={`flex flex-col items-center p-2 ${activeTab === 'settings' ? 'text-navlink' : 'text-midnight/60'}`}
+          >
+            <SettingsIcon className="w-6 h-6" />
+            <span className="text-xs mt-1">Settings</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Shop Modal */}
+      {showShop && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setShowShop(false)}>
+          <div className="w-full" onClick={e => e.stopPropagation()}>
+            <Shop featherBalance={featherBalance} onClose={() => setShowShop(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

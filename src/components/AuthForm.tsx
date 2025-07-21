@@ -1,147 +1,168 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 import './AuthForm.css';
 
 interface AuthFormProps {
-  onAuth: (user: { name?: string; email: string }, password: string, isLogin: boolean) => void;
-  onClose: () => void;
-  isLoading?: boolean;
+  onSubmit: (user: { name?: string; email: string }, password: string, isLogin: boolean) => void;
   initialMode?: 'login' | 'register';
-  onStartOnboarding?: () => void;
+  isLoading?: boolean;
 }
 
-export const AuthForm: React.FC<AuthFormProps> = ({ onAuth, onClose, isLoading = false, initialMode = 'login', onStartOnboarding }) => {
-  const [isLogin, setIsLogin] = useState(initialMode === 'login');
-  const [name, setName] = useState('');
+export default function AuthForm({ onSubmit, initialMode = 'login', isLoading = false }: AuthFormProps) {
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
-  // Setze isLogin-Zustand wenn sich initialMode ändert
-  useEffect(() => {
-    setIsLogin(initialMode === 'login');
-  }, [initialMode]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    
-    // Einfache Validierung
-    if (!email || !password || (!isLogin && !name)) {
-      setError('Bitte fülle alle Felder aus.');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Das Passwort muss mindestens 6 Zeichen lang sein.');
-      return;
-    }
-
-    try {
-      if (!isLogin && onStartOnboarding) {
-        onStartOnboarding(); // Starte Onboarding direkt bei Registrierung
-        return;
-      }
-      await onAuth({ name: !isLogin ? name : undefined, email }, password, isLogin);
-    } catch (err) {
-      setError('Bei der Authentifizierung ist ein Fehler aufgetreten.');
+    if (mode === 'forgot') {
+      handleForgotPassword();
+    } else {
+      onSubmit({ name, email }, password, mode === 'login');
     }
   };
 
-  const toggleAuthMode = () => {
-    setIsLogin(!isLogin);
-    setError(null);
+  const handleForgotPassword = async () => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      
+      if (error) throw error;
+      
+      setResetEmailSent(true);
+    } catch (error) {
+      console.error('Fehler beim Zurücksetzen des Passworts:', error);
+    }
   };
 
   return (
-    <div className="auth-form">
-      <h2 className="auth-title">{isLogin ? 'Anmelden' : 'Registrieren'}</h2>
-      
-      {error && <div className="auth-error">{error}</div>}
-      
-      <form onSubmit={handleSubmit}>
-        {!isLogin && (
-          <div className="form-group">
-            <label htmlFor="name">Name</label>
+    <div className="w-full max-w-md mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {mode === 'login' ? 'Willkommen zurück!' : 
+             mode === 'register' ? 'Erstelle deinen Account' :
+             'Passwort vergessen'}
+          </h2>
+          <p className="mt-2 text-gray-600">
+            {mode === 'login' ? 'Melde dich an, um fortzufahren' : 
+             mode === 'register' ? 'Beginne deine Beziehungsreise' :
+             'Wir senden dir eine E-Mail mit Anweisungen, wie du dein Passwort zurücksetzen kannst.'}
+          </p>
+        </div>
+
+        {mode === 'register' && (
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Name
+            </label>
             <input
-              id="name"
               type="text"
+              id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
-              className="w-full p-2 border rounded"
-              placeholder="Dein Name"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
+              required
             />
           </div>
         )}
-        
-        <div className="form-group">
-          <label htmlFor="email">E-Mail</label>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            {mode === 'forgot' ? 'E-Mail-Adresse angeben' : 'E-Mail'}
+          </label>
           <input
-            id="email"
             type="email"
+            id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
-            className="w-full p-2 border rounded"
-            placeholder="deine@email.de"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
+            required
           />
         </div>
-        
-        <div className="form-group">
-          <label htmlFor="password">Passwort</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
-            className="w-full p-2 border rounded"
-            placeholder="Mindestens 6 Zeichen"
-          />
-        </div>
-        
-        <div className="auth-actions flex flex-col space-y-3 mt-6">
-          <button 
-            type="submit" 
+
+        {mode !== 'forgot' && (
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Passwort
+              </label>
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => setMode('forgot')}
+                  className="text-sm text-navlink hover:text-navlink/80 font-medium ml-2"
+                >
+                  Vergessen?
+                </button>
+              )}
+            </div>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
+              required
+            />
+          </div>
+        )}
+
+        {resetEmailSent ? (
+          <div className="rounded-xl bg-green-50 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-green-800">
+                  E-Mail wurde gesendet! Bitte überprüfe deinen Posteingang.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="submit"
             className="w-full bg-gradient-to-r from-lavendel to-lavendelHover text-white py-3 px-6 rounded-xl hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-semibold text-lg"
             disabled={isLoading}
           >
-            {isLoading ? 'Bitte warten...' : 'Jetzt starten'}
+            {isLoading ? 'Bitte warten...' : 
+             mode === 'login' ? 'Anfangen' :
+             mode === 'register' ? 'Account erstellen' :
+             'Senden'}
           </button>
-          <div className="flex space-x-3">
-            <button 
-              type="button" 
-              className="flex-1 border-2 border-gray-200 py-2.5 px-6 rounded-xl hover:bg-gray-50 transition-all duration-300 text-gray-700 hover:border-lavendel"
-              onClick={onClose}
-              disabled={isLoading}
+        )}
+
+        {mode !== 'forgot' && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+              className="text-navlink hover:text-navlink/80 font-medium"
             >
-              Abbrechen
-            </button>
-            <button 
-              type="button" 
-              className="flex-1 bg-white border-2 border-lavendel py-2.5 px-6 rounded-xl hover:bg-lavendel/5 transition-all duration-300 text-lavendel"
-              onClick={toggleAuthMode}
-              disabled={isLoading}
-            >
-              {isLogin ? 'Registrieren' : 'Anmelden'}
+              {mode === 'login' ? 'Noch kein Account? Registrieren' : 'Bereits registriert? Anmelden'}
             </button>
           </div>
-        </div>
+        )}
+
+        {mode === 'forgot' && !resetEmailSent && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setMode('login')}
+              className="text-navlink hover:text-navlink/80 font-medium"
+            >
+              Zurück zur Anmeldung
+            </button>
+          </div>
+        )}
       </form>
-      
-      <div className="auth-footer mt-6 text-center text-sm text-gray-500">
-        {isLogin ? 'Neu hier? ' : 'Bereits registriert? '}
-        <button 
-          type="button" 
-          className="text-lavendel hover:text-lavendelHover transition-colors duration-200 hover:underline font-medium"
-          onClick={toggleAuthMode}
-          disabled={isLoading}
-        >
-          {isLogin ? 'Jetzt kostenlosen Account erstellen' : 'Jetzt anmelden'}
-        </button>
-      </div>
     </div>
   );
-};
-
-export default AuthForm; 
+} 
