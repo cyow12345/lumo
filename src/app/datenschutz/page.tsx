@@ -1,5 +1,12 @@
 import React from 'react';
 
+export const metadata = {
+  title: 'Datenschutzerklärung - Lumo',
+  description: 'Datenschutzerklärung von Lumo - Erfahren Sie, wie wir Ihre Daten schützen und verarbeiten.'
+};
+
+export const revalidate = 3600; // Revalidiere die Seite stündlich
+
 const DatenschutzPage = () => (
   <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
     <h1 className="text-3xl font-bold text-navlink mb-4">Datenschutzerklärung</h1>
