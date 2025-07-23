@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 export interface ChatParticipant {
   id: string;
   name: string;
-  role: 'partner_1' | 'partner_2';
+  role: 'partner_1' | 'partner_2' | 'user';
   avatar_url?: string;
 }
 
@@ -65,13 +65,13 @@ class ChatServiceClass {
             {
               id: userId,
               name: userMap.get(userId)?.name || 'Unbekannt',
-              role: 'partner_1',
+              role: 'partner_1' as const,
               avatar_url: userMap.get(userId)?.avatar_url
             },
             ...(partnerId ? [{
               id: partnerId,
               name: userMap.get(partnerId)?.name || 'Unbekannt',
-              role: 'partner_2',
+              role: 'partner_2' as const,
               avatar_url: userMap.get(partnerId)?.avatar_url
             }] : [])
           ],
@@ -113,13 +113,13 @@ class ChatServiceClass {
           {
             id: userId,
             name: userMap.get(userId)?.name || 'Unbekannt',
-            role: 'partner_1',
+            role: 'partner_1' as const,
             avatar_url: userMap.get(userId)?.avatar_url
           },
           ...(partnerId ? [{
             id: partnerId,
             name: userMap.get(partnerId)?.name || 'Unbekannt',
-            role: 'partner_2',
+            role: 'partner_2' as const,
             avatar_url: userMap.get(partnerId)?.avatar_url
           }] : [])
         ],

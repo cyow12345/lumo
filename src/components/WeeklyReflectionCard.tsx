@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Card from './Card';
 import { triggerAnalysisUpdate, AnalysisUpdateTrigger } from '../services/analyzeRelationship';
+import { Quote } from 'lucide-react';
 
 // Federn-Belohnungen
 const REWARDS = {
@@ -44,6 +45,7 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<VibeCheckQuestion | null>(null);
+  const [isFirstVibeCheck, setIsFirstVibeCheck] = useState(false);
 
   // Funktion zum Berechnen der aktuellen Kalenderwoche und Jahr
   const getCurrentWeekAndYear = () => {
@@ -56,6 +58,22 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({
       week: weekNumber,
       year: now.getFullYear()
     };
+  };
+
+  // Funktion zum Prüfen, ob es der erste Vibe Check ist
+  const checkIfFirstVibeCheck = async () => {
+    if (!userId) return;
+
+    try {
+      const { count } = await supabase
+        .from('vibe_checks')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      setIsFirstVibeCheck(!count || count === 0);
+    } catch (err) {
+      console.error('Fehler beim Prüfen des ersten Vibe Checks:', err);
+    }
   };
 
   // Funktion zum Laden der aktuellen Frage
@@ -102,10 +120,7 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({
         .eq('user_id', userId)
         .eq('week_number', week)
         .eq('year', year)
-        .single()
-        .headers({
-          'Accept': 'application/json'
-        });
+        .single();
 
       if (myError && myError.code !== 'PGRST116') { // PGRST116 = not found
         throw myError;
@@ -120,10 +135,7 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({
         .eq('user_id', partnerId)
         .eq('week_number', week)
         .eq('year', year)
-        .single()
-        .headers({
-          'Accept': 'application/json'
-        });
+        .single();
 
       if (partnerError && partnerError.code !== 'PGRST116') {
         throw partnerError;
@@ -138,6 +150,7 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({
   useEffect(() => {
     loadVibeChecks();
     loadCurrentQuestion();
+    checkIfFirstVibeCheck();
   }, [userId, partnerId]);
 
   const handleChange = (value: string) => {
@@ -171,10 +184,7 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({
           reflection: null // Wird später durch Lumo's Reflexion ersetzt
         })
         .select()
-        .single()
-        .headers({
-          'Accept': 'application/json'
-        });
+        .single();
 
       if (error) throw error;
 
@@ -192,9 +202,6 @@ const WeeklyReflectionCard: React.FC<WeeklyReflectionCardProps> = ({
             year: year,
             partner_id: partnerId
           }
-        })
-        .headers({
-          'Accept': 'application/json'
         });
 
       // Wenn der Partner bereits geantwortet hat, hole Lumo's Reflexion
@@ -339,20 +346,11 @@ Deine Reflexion soll wie ein sanfter Spiegel sein – sie zeigt, was da ist, ohn
                 <stop offset="60%" stopColor="#FFA500" />
                 <stop offset="100%" stopColor="#FF8C00" />
               </linearGradient>
-              <linearGradient id="feather-shine-weekly" x1="8" y1="4" x2="8" y2="13" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#FFF5CC" />
-                <stop offset="100%" stopColor="#FFD700" />
-              </linearGradient>
             </defs>
             <path
               d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
               fill="url(#feather-gradient-weekly)"
               className="drop-shadow-lg"
-            />
-            <path
-              d="M12 4c-.3 0-.5.1-.7.3l-7 7c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7-7c.4-.4.4-1 0-1.4-.2-.2-.4-.3-.7-.3z"
-              fill="url(#feather-shine-weekly)"
-              className="drop-shadow-md"
             />
           </svg>
         </div>
@@ -364,97 +362,125 @@ Deine Reflexion soll wie ein sanfter Spiegel sein – sie zeigt, was da ist, ohn
         <h3 className="text-base sm:text-lg font-semibold text-midnight">Wöchentlicher Vibe Check</h3>
       </div>
 
-      {/* Wöchentliche Frage */}
-      <div className="px-3 sm:px-5 pb-3 sm:pb-4">
-        <div className="bg-lavender/5 rounded-xl p-3 sm:p-4">
-          <div className="text-xs sm:text-sm font-medium text-lavender mb-1">Diese Woche:</div>
-          <div className="text-sm sm:text-base text-midnight/90 font-medium">
-            {currentQuestion?.question || 'Wie fühlst du dich diese Woche in eurer Beziehung?'}
+      {/* Mobile: Kompakte Version */}
+      <div className="block sm:hidden px-3 pb-3">
+        <div>
+          <div className="mb-2">
+            <p className="text-xs text-gray-600">
+              {currentQuestion?.question || 'Wie fühlst du dich diese Woche in deiner Beziehung?'}
+            </p>
           </div>
-          {currentQuestion?.subtitle && (
-            <div className="hidden sm:block text-sm text-midnight/70 mt-1">
-              {currentQuestion.subtitle}
+          {!myVibeCheck ? (
+            <div className="flex items-center gap-1.5">
+              <input
+                type="text"
+                value={answer}
+                onChange={(e) => handleChange(e.target.value)}
+                placeholder="Teile deine Gedanken..."
+                className="flex-1 px-2 py-1 border border-lavender/30 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-lavender"
+              />
+              <button
+                onClick={handleSubmit}
+                disabled={loading || !answer.trim()}
+                className="px-2 py-1 bg-navlink text-white rounded-lg text-[10px] font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-navlink/90 transition-colors whitespace-nowrap"
+              >
+                {loading ? '...' : 'Senden'}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between text-xs text-midnight/60">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span>Check erledigt</span>
+              </div>
+              {partnerName && (
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${partnerVibeCheck ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span>{partnerName}s Check</span>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Antworten und Reflexion - nur auf Desktop */}
-      {(myVibeCheck || partnerVibeCheck) && (
-        <div className="hidden sm:block px-5 pb-4">
-          <div className="space-y-4">
-            {myVibeCheck && (
-              <div className="bg-lavender/5 rounded-xl p-4">
-                <div className="text-sm font-medium text-lavender mb-1">Deine Antwort:</div>
-                <p className="text-midnight/90">{myVibeCheck.answer}</p>
-              </div>
-            )}
-            {partnerVibeCheck && (
-              <div className="bg-lavender/5 rounded-xl p-4">
-                <div className="text-sm font-medium text-lavender mb-1">
-                  {partnerName ? `${partnerName}s Antwort:` : 'Partner Antwort:'}
-                </div>
-                <p className="text-midnight/90">{partnerVibeCheck.answer}</p>
-              </div>
-            )}
-            {myVibeCheck?.reflection && partnerVibeCheck?.reflection && (
-              <div className="bg-lavender/10 rounded-xl p-4">
-                <div className="text-sm font-medium text-lavender mb-1">Lumos Reflexion:</div>
-                <div className="text-midnight/90">{myVibeCheck.reflection}</div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Auf Mobile: Nur Status anzeigen wenn bereits eingereicht */}
-      {(myVibeCheck || partnerVibeCheck) && (
-        <div className="block sm:hidden px-3 pb-3">
-          <div className="flex items-center justify-between text-xs text-midnight/60">
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${myVibeCheck ? 'bg-green-500' : 'bg-gray-300'}`} />
-              <span>Dein Check</span>
+      {/* Desktop: Volle Version */}
+      <div className="hidden sm:block">
+        {/* Wöchentliche Frage */}
+        <div className="px-5 pb-4">
+          <div className="bg-lavender/5 rounded-xl p-4">
+            <div className="text-sm font-medium text-lavender mb-1">Diese Woche:</div>
+            <div className="text-base text-midnight/90 font-medium">
+              {currentQuestion?.question || 'Wie fühlst du dich diese Woche in eurer Beziehung?'}
             </div>
-            {partnerName && (
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${partnerVibeCheck ? 'bg-green-500' : 'bg-gray-300'}`} />
-                <span>{partnerName}s Check</span>
+            {currentQuestion?.subtitle && (
+              <div className="text-sm text-midnight/70 mt-1">
+                {currentQuestion.subtitle}
               </div>
             )}
           </div>
         </div>
-      )}
 
-      {/* Formular zum Einreichen - kompakter auf Mobile */}
-      {!myVibeCheck && (
-        <form onSubmit={handleSubmit} className="p-3 sm:p-5 pt-0 flex flex-col gap-3 sm:gap-4">
-          <div>
-            <label className="block text-sm text-midnight/80 font-medium mb-1">
-              Deine Antwort:
-            </label>
-            <textarea
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              className="w-full rounded-xl border border-lavender/30 p-2 sm:p-3 text-sm sm:text-base focus:outline-none focus:border-lavender"
-              rows={3}
-              placeholder="Teile deine Gedanken..."
-            />
+        {/* Antworten und Reflexion */}
+        {(myVibeCheck || partnerVibeCheck) && (
+          <div className="px-5 pb-4">
+            <div className="space-y-4">
+              {myVibeCheck && (
+                <div className="bg-lavender/5 rounded-xl p-4">
+                  <div className="text-sm font-medium text-lavender mb-1">Deine Antwort:</div>
+                  <p className="text-midnight/90">{myVibeCheck.answer}</p>
+                </div>
+              )}
+              {partnerVibeCheck && (
+                <div className="bg-lavender/5 rounded-xl p-4">
+                  <div className="text-sm font-medium text-lavender mb-1">
+                    {partnerName ? `${partnerName}s Antwort:` : 'Partner Antwort:'}
+                  </div>
+                  <p className="text-midnight/90">{partnerVibeCheck.answer}</p>
+                </div>
+              )}
+              {myVibeCheck?.reflection && partnerVibeCheck?.reflection && (
+                <div className="bg-lavender/10 rounded-xl p-4">
+                  <div className="text-sm font-medium text-lavender mb-1">Lumos Reflexion:</div>
+                  <div className="text-midnight/90">{myVibeCheck.reflection}</div>
+                </div>
+              )}
+            </div>
           </div>
-          <button
-            type="submit"
-            disabled={!answer.trim()}
-            className={`px-4 py-2 rounded-xl text-sm sm:text-base font-medium shadow transition ${
-              answer.trim()
-                ? 'bg-navlink text-white hover:bg-navlink/80'
-                : 'bg-lavender/20 text-midnight/40 cursor-not-allowed'
-            }`}
-          >
-            Vibe Check einreichen
-          </button>
-          {successMsg && <div className="text-green-600 text-sm mt-1">{successMsg}</div>}
-          {error && <div className="text-red-600 text-sm mt-1">{error}</div>}
-        </form>
-      )}
+        )}
+
+        {/* Formular zum Einreichen */}
+        {!myVibeCheck && (
+          <form onSubmit={handleSubmit} className="px-5 pb-4 flex flex-col gap-4">
+            <div>
+              <label className="block text-sm text-midnight/80 font-medium mb-1">
+                Deine Antwort:
+              </label>
+              <textarea
+                value={answer}
+                onChange={(e) => handleChange(e.target.value)}
+                className="w-full rounded-xl border border-lavender/30 p-3 text-base focus:outline-none focus:border-lavender"
+                rows={3}
+                placeholder="Teile deine Gedanken..."
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !answer.trim()}
+              className={`px-4 py-2 rounded-xl text-base font-medium shadow transition ${
+                answer.trim()
+                  ? 'bg-navlink text-white hover:bg-navlink/80'
+                  : 'bg-lavender/20 text-midnight/40 cursor-not-allowed'
+              }`}
+            >
+              Vibe Check einreichen
+            </button>
+          </form>
+        )}
+      </div>
+
+      {error && <p className="text-red-500 text-[10px] sm:text-sm px-3 mt-1">{error}</p>}
+      {successMsg && <p className="text-green-500 text-[10px] sm:text-sm px-3 mt-1">{successMsg}</p>}
     </Card>
   );
 };

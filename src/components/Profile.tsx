@@ -340,31 +340,28 @@ const Profile: React.FC<ProfileProps> = ({
 
       if (error) throw error;
 
-      setUser(prev => ({ ...prev, ...formData }));
+      const updatedUser = { ...user, ...formData };
+      setUser(updatedUser as User);
       setIsEditing(false);
       if (onUpdateProfile && user) {
-        onUpdateProfile({ ...user, ...formData });
+        onUpdateProfile(updatedUser as User);
       }
       setSuccess('Profil wurde erfolgreich aktualisiert.');
 
       // Trigger ein Update der Beziehungsanalyse
-      if (userData?.partner_id) {
+      if (updatedUser.partner_id) {
         try {
-          await triggerAnalysisUpdate(userId, userData.partner_id, AnalysisUpdateTrigger.PROFILE_UPDATE, {
+          await triggerAnalysisUpdate(userId, updatedUser.partner_id, AnalysisUpdateTrigger.PROFILE_UPDATE, {
             updated_fields: [
-              'name',
-              'age',
-              'gender',
               'attachment_style',
               'addressing_issues',
               'relationship_values',
-              'parental_influence'
+              'parental_influence',
+              'relationship_start_date'
             ]
           });
-          console.log('Analyse-Update nach Profil-Änderung getriggert');
-        } catch (err) {
-          console.error('Fehler beim Triggern des Analyse-Updates:', err);
-          // Wir werfen den Fehler nicht weiter, da das Profil-Update trotzdem erfolgreich war
+        } catch (error) {
+          console.error('Fehler beim Aktualisieren der Analyse:', error);
         }
       }
     } catch (error: any) {
@@ -378,7 +375,7 @@ const Profile: React.FC<ProfileProps> = ({
       const { error } = await supabase
         .from('user_profiles')
         .update({ 
-          partner_id: null,
+          partner_id: undefined,
           relationship_status: 'single'
         })
         .eq('id', userId);
@@ -386,11 +383,12 @@ const Profile: React.FC<ProfileProps> = ({
       if (error) throw error;
 
       // Aktualisiere den lokalen State
-      setUser(prev => ({
-        ...prev,
-        partner_id: null,
+      const updatedUser = {
+        ...user,
+        partner_id: undefined,
         relationship_status: 'single'
-      }));
+      } as User;
+      setUser(updatedUser);
 
       setShowUnlinkConfirm(false);
       setSuccess('Partnerverbindung wurde aufgelöst.');
@@ -539,18 +537,24 @@ const Profile: React.FC<ProfileProps> = ({
     }
   };
 
-  // Hilfsfunktion zum Übersetzen der Antworten
-  const translateAnswer = (key: string, value: string | null | undefined): string => {
-    if (!value) return 'Nicht angegeben';
-    
-    // Prüfe ob es ein Mapping für diesen Schlüssel gibt
-    if (ANSWER_MAPPINGS[key] && ANSWER_MAPPINGS[key][value]) {
-      return ANSWER_MAPPINGS[key][value];
+  function translateAnswer(key: string, value: any): string {
+    if (!value) return 'Keine Angabe';
+
+    switch (key) {
+      case 'attachment_style':
+        return value;
+      case 'addressing_issues':
+        return value;
+      case 'relationship_values':
+        return Array.isArray(value) ? value.join(', ') : value;
+      case 'parental_influence':
+        return value;
+      case 'relationship_start_date':
+        return value ? new Date(value).toLocaleDateString() : 'Keine Angabe';
+      default:
+        return String(value);
     }
-    
-    // Wenn kein Mapping gefunden, gib den Originalwert zurück
-    return value;
-  };
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto p-4">

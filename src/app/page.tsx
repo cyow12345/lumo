@@ -424,53 +424,53 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <footer className="bg-[#332d6e] text-white py-12 md:py-16">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-center">
+        <footer className="bg-[#332d6e] text-white py-16 md:py-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+            <div className="grid grid-cols-3 gap-4 md:gap-8">
               {/* Über uns */}
-              <div className="flex flex-col items-center">
-                <h3 className="font-bold text-base md:text-lg mb-4">Über uns</h3>
-                <ul className="space-y-3">
+              <div className="flex flex-col items-center md:items-start">
+                <h3 className="font-bold text-base md:text-lg mb-6">Über uns</h3>
+                <ul className="space-y-4 text-center md:text-left">
                   <li>
-                    <a href="/mission" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Mission</a>
+                    <Link href="/mission" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Mission</Link>
                   </li>
                   <li>
-                    <a href="/karriere" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Karriere</a>
+                    <Link href="/karriere" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Karriere</Link>
                   </li>
                   <li>
-                    <a href="/kontakt" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Kontakt</a>
-                  </li>
-                  <li>
-                    <a href="/impressum" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Impressum</a>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Rechtliches */}
-              <div className="flex flex-col items-center">
-                <h3 className="font-bold text-base md:text-lg mb-4">Rechtliches</h3>
-                <ul className="space-y-3">
-                  <li>
-                    <a href="/agb" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">AGB</a>
-                  </li>
-                  <li>
-                    <a href="/datenschutz" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Datenschutz</a>
+                    <Link href="/kontakt" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Kontakt</Link>
                   </li>
                 </ul>
               </div>
 
               {/* Sozial */}
-              <div className="flex flex-col items-center col-span-2 md:col-span-1 mt-8 md:mt-0">
-                <h3 className="font-bold text-base md:text-lg mb-4">Sozial</h3>
-                <ul className="space-y-3">
-                  <li>
-                    <a href="https://instagram.com/lumo" target="_blank" rel="noopener noreferrer" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Instagram</a>
-                  </li>
+              <div className="flex flex-col items-center md:items-start">
+                <h3 className="font-bold text-base md:text-lg mb-6">Sozial</h3>
+                <ul className="space-y-4 text-center md:text-left">
                   <li>
                     <a href="https://tiktok.com/@lumo" target="_blank" rel="noopener noreferrer" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">TikTok</a>
                   </li>
                   <li>
                     <a href="https://twitter.com/lumo" target="_blank" rel="noopener noreferrer" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Twitter</a>
+                  </li>
+                  <li>
+                    <a href="https://instagram.com/lumo" target="_blank" rel="noopener noreferrer" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Instagram</a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Rechtliches */}
+              <div className="flex flex-col items-center md:items-start">
+                <h3 className="font-bold text-base md:text-lg mb-6">Rechtliches</h3>
+                <ul className="space-y-4 text-center md:text-left">
+                  <li>
+                    <Link href="/agb" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">AGB</Link>
+                  </li>
+                  <li>
+                    <Link href="/datenschutz" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Datenschutz</Link>
+                  </li>
+                  <li>
+                    <Link href="/impressum" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Impressum</Link>
                   </li>
                 </ul>
               </div>

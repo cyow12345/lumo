@@ -24,6 +24,7 @@ import OnboardingFlow from './components/OnboardingFlow';
 import { Home, MessageCircleHeart, SmilePlus, BarChart, Notebook, CheckSquare, Trophy, Settings as SettingsIcon, LogOut, Heart, Calendar, Clock, Brain, BookOpen, User, Users, ClipboardList } from 'lucide-react';
 import SingleChat from './components/SingleChat';
 import PairChat from './components/PairChat';
+import Shop from './components/Shop';
 // Verwende den public-Pfad
 const lumoLogo = '/lumo_logo.png';
 

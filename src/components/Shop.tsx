@@ -1,44 +1,29 @@
 import React from 'react';
-import { ShoppingBag, Gift, Star } from 'lucide-react';
+import { ShoppingBag, Timer, Gift } from 'lucide-react';
 
 interface ShopProps {
   featherBalance: number;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 const Shop: React.FC<ShopProps> = ({ featherBalance, onClose }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-r from-amber-200 to-yellow-400 rounded-xl">
-            <ShoppingBag className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Lumo Shop</h2>
-            <p className="text-gray-600">Tausche deine goldenen Federn gegen exklusive Rewards</p>
-          </div>
-        </div>
-        
-        {/* Federn-Anzeige */}
+    <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl p-3 sm:p-6 max-w-md mx-auto">
+      <div className="flex justify-between items-center mb-3 sm:mb-6">
         <div className="flex items-center gap-2">
-          <svg
-            viewBox="0 0 24 24"
-            className="w-5 h-5"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
-              fill="url(#feather-gradient-shop)"
-              className="drop-shadow-lg"
-            />
-            <path
-              d="M12 4c-.3 0-.5.1-.7.3l-7 7c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7-7c.4-.4.4-1 0-1.4-.2-.2-.4-.3-.7-.3z"
-              fill="url(#feather-shine-shop)"
-              className="drop-shadow-md"
-            />
+          <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-navlink" />
+          <h2 className="text-lg sm:text-2xl font-bold text-gray-800">Shop</h2>
+        </div>
+        <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <div className="mb-4 flex items-center gap-1.5 bg-gradient-to-r from-amber-100 to-amber-50 px-3 py-2 rounded-lg">
+        <div className="bg-white/80 rounded-full p-1 shadow-inner">
+          <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5 filter drop-shadow">
             <defs>
               <linearGradient id="feather-gradient-shop" x1="12" y1="4" x2="12" y2="20" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stopColor="#FFD700" />
@@ -50,58 +35,40 @@ const Shop: React.FC<ShopProps> = ({ featherBalance, onClose }) => {
                 <stop offset="100%" stopColor="#FFD700" />
               </linearGradient>
             </defs>
+            <path
+              d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
+              fill="url(#feather-gradient-shop)"
+              className="drop-shadow-lg"
+            />
+            <path
+              d="M12 4c-.3 0-.5.1-.7.3l-7 7c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7-7c.4-.4.4-1 0-1.4-.2-.2-.4-.3-.7-.3z"
+              fill="url(#feather-shine-shop)"
+              className="drop-shadow-md"
+            />
           </svg>
-          <span className="text-amber-600 font-medium">{featherBalance} Federn</span>
         </div>
+        <span className="text-sm sm:text-lg text-gray-700 font-medium">Deine Federn: {featherBalance}</span>
       </div>
 
-      {/* Coming Soon Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-lavender/5 to-lavender/10 rounded-2xl p-8 text-center">
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-4 left-4 animate-float-slow">
-            <Gift className="w-8 h-8 text-lavender opacity-20" />
+      {/* Info Box */}
+      <div className="bg-lavender/5 border border-lavender/20 rounded-lg p-4">
+        <div className="flex flex-col items-center text-center gap-4">
+          <div className="bg-white/80 rounded-full p-3 shadow-md">
+            <Gift className="w-8 h-8 text-navlink" />
           </div>
-          <div className="absolute top-12 right-8 animate-float-slower">
-            <Star className="w-6 h-6 text-amber-400 opacity-20" />
+          <div>
+            <h3 className="text-lg font-medium text-navlink mb-2">Bald verfügbar!</h3>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Sammle fleißig Federn durch tägliche "Ich denk an dich" Nachrichten und wöchentliche Vibe-Checks. 
+              Bald kannst du deine gesammelten Federn gegen exklusive Lumo-Merchandise eintauschen!
+            </p>
           </div>
-          <div className="absolute bottom-8 left-12 animate-float">
-            <Gift className="w-6 h-6 text-amber-300 opacity-20" />
-          </div>
-          <div className="absolute bottom-12 right-12 animate-float-slow">
-            <Star className="w-8 h-8 text-lavender opacity-20" />
-          </div>
-        </div>
-
-        <div className="relative z-10 py-12">
-          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-amber-200 to-yellow-400 rounded-full flex items-center justify-center shadow-lg">
-            <ShoppingBag className="w-10 h-10 text-white" />
-          </div>
-          
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">
-            Der Lumo Shop öffnet bald!
-          </h3>
-          
-          <p className="text-gray-600 max-w-md mx-auto mb-6">
-            Sammle weiter fleißig goldene Federn und freue dich auf exklusive Lumo Merchandise, 
-            besondere Beziehungs-Features und vieles mehr.
-          </p>
-          
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-lavender/10 rounded-full text-sm text-lavender">
-            <Gift className="w-4 h-4" />
+          <div className="flex items-center gap-1.5 text-xs text-navlink/60">
+            <Timer className="w-4 h-4" />
             <span>Coming Soon</span>
           </div>
         </div>
       </div>
-
-      {/* Close Button */}
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
-      )}
     </div>
   );
 };

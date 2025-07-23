@@ -28,12 +28,12 @@ const FEATHER_REWARDS = {
 };
 
 interface DashboardProps {
-  userId?: string;
+  userId: string;
   featherBalance?: number;
   onFeatherBalanceChange?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFeatherBalanceChange }) => {
+const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance, onFeatherBalanceChange }) => {
   const [notificationSent, setNotificationSent] = useState(false);
   const [notificationDisabled, setNotificationDisabled] = useState(false);
   const [userName, setUserName] = useState<string>('');
@@ -52,7 +52,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
   const [relationshipStartDate, setRelationshipStartDate] = useState<string | null>(null);
 
   // Entferne Astro-bezogene States
-  const [activeTab, setActiveTab] = useState<'analyse'>('analyse');
+  const [activeTab, setActiveTab] = useState<'analyse' | 'home' | 'profile' | 'settings'>('analyse');
 
   // Dashboard reload helper
   const reloadDashboard = async () => {
@@ -306,7 +306,9 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
       setTimeout(() => {
         setShowFeatherAnimation(false);
         setEarnedFeathers(0);
-        loadFeatherBalance();
+        if (onFeatherBalanceChange) {
+          onFeatherBalanceChange();
+        }
       }, 2000);
     } catch (error) {
       console.error('Fehler beim Senden der Benachrichtigung:', error);
@@ -526,78 +528,30 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
     };
   }, []);
 
+  // Hilfsfunktion für die Begrüßungsnachricht basierend auf der Tageszeit
+  const getTimeBasedMessage = () => {
+    const now = new Date();
+    const hours = now.getHours();
+
+    if (hours < 12) {
+      return 'Guten Morgen!';
+    } else if (hours < 18) {
+      return 'Guten Tag!';
+    } else {
+      return 'Guten Abend!';
+    }
+  };
+
+  const greeting = getTimeBasedMessage();
+
   return (
     <div className="h-screen overflow-hidden flex flex-col">
-      {/* Header Card mit Profil */}
-      <Card className="border border-lavender/30 bg-white/80 mb-2 relative p-4">
-        {/* Icon-Buttons rechts oben - nur auf Desktop */}
-        <div className="absolute top-3 right-3 sm:flex gap-3 z-10 hidden">
-          {/* Federn-Anzeige Desktop */}
-          <div 
-            className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-200 to-yellow-400 rounded-full shadow-md cursor-pointer hover:shadow-lg transition"
-            onClick={() => setShowShop(true)}
-            title="Zum Shop"
-          >
-            <div className="bg-white/80 rounded-full p-1 shadow-inner">
-              <svg
-                viewBox="0 0 24 24"
-                className="w-5 h-5 filter drop-shadow"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
-                  fill="url(#feather-gradient-header)"
-                  className="drop-shadow-lg"
-                  style={{ filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.2))' }}
-                />
-                <path
-                  d="M12 4c-.3 0-.5.1-.7.3l-7 7c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7-7c.4-.4.4-1 0-1.4-.2-.2-.4-.3-.7-.3z"
-                  fill="url(#feather-shine-header)"
-                  className="drop-shadow-md"
-                />
-                <defs>
-                  <linearGradient id="feather-gradient-header" x1="12" y1="4" x2="12" y2="20" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#FFD700" />
-                    <stop offset="60%" stopColor="#FFA500" />
-                    <stop offset="100%" stopColor="#FF8C00" />
-                  </linearGradient>
-                  <linearGradient id="feather-shine-header" x1="8" y1="4" x2="8" y2="13" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#FFF5CC" />
-                    <stop offset="100%" stopColor="#FFD700" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span className="font-semibold text-white drop-shadow-sm text-base">{featherBalance}</span>
-          </div>
-          <button
-            onClick={handleProfile}
-            className="p-1.5 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition"
-            title="Profil"
-          >
-            <UserIcon className="w-6 h-6" />
-          </button>
-          <button
-            onClick={handleSettings}
-            className="p-1.5 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition"
-            title="Einstellungen"
-          >
-            <SettingsIcon className="w-6 h-6" />
-          </button>
-          <button
-            onClick={handleLogout}
-            className="p-1.5 rounded-full hover:bg-lavender/10 text-lavender hover:text-navlink transition"
-            title="Abmelden"
-          >
-            <LogOut className="w-6 h-6" />
-          </button>
-        </div>
-
+      {/* Header Card mit Profil - noch kompakter */}
+      <Card className="border border-lavender/30 bg-white/80 relative p-1.5 mx-2 mt-0.5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
             {/* User-Profilbild */}
-            <div className="w-10 h-10 bg-lavender rounded-full flex items-center justify-center text-white font-medium text-lg overflow-hidden">
+            <div className="w-6 h-6 md:w-10 md:h-10 bg-lavender rounded-full flex items-center justify-center text-white font-medium text-xs md:text-lg overflow-hidden">
               {userData?.avatar_url ? (
                 <img src={userData.avatar_url} alt={userName} className="w-full h-full object-cover" />
               ) : (
@@ -605,11 +559,11 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
               )}
             </div>
             <div>
-              <div className="text-sm sm:text-base">
+              <div className="text-xs md:text-base">
                 {partnerName ? `${userName} & ${partnerName}` : `Hallo ${userName}`}
               </div>
               {partnerName && (
-                <div className="text-xs sm:text-sm text-midnight/60">
+                <div className="text-[10px] md:text-sm text-midnight/60">
                   {getDaysTogether()} Tage zusammen
                 </div>
               )}
@@ -619,11 +573,11 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
           {/* Federn-Anzeige Mobile */}
           <div className="sm:hidden">
             <div 
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-200 to-yellow-400 rounded-full shadow-md cursor-pointer hover:shadow-lg transition"
+              className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-200 to-yellow-400 rounded-full shadow-md cursor-pointer hover:shadow-lg transition"
               onClick={() => setShowShop(true)}
             >
               <div className="bg-white/80 rounded-full p-0.5 shadow-inner">
-                <svg viewBox="0 0 24 24" className="w-4 h-4 filter drop-shadow">
+                <svg viewBox="0 0 24 24" className="w-3 h-3 md:w-4 md:h-4 filter drop-shadow">
                   <path
                     d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
                     fill="url(#feather-gradient-mobile)"
@@ -647,7 +601,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
                   </defs>
                 </svg>
               </div>
-              <span className="font-semibold text-white drop-shadow-sm text-sm">{featherBalance}</span>
+              <span className="font-semibold text-white drop-shadow-sm text-[10px] md:text-sm">{featherBalance}</span>
             </div>
           </div>
         </div>
@@ -693,16 +647,16 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto px-3">
+      {/* Main Content Area - kompaktere Abstände */}
+      <div className="flex-1 overflow-y-auto px-2 pt-0.5">
         {showPartnerLinkedInfo && (
-          <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl px-5 py-3 mb-3 text-center text-base font-medium">
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg px-2 py-1 mb-0.5 text-center text-[10px]">
             Partner erfolgreich verbunden! 🎉
           </div>
         )}
 
         {/* Partner Status */}
-        <div className="mb-4">
+        <div className="mb-0.5">
           <PartnerStatusBox
             userId={userId || ''}
             userName={userName}
@@ -715,32 +669,47 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
         </div>
 
         {/* Beziehungsanalyse und Vibe Check nebeneinander auf Desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 sm:gap-4">
           {/* Beziehungsanalyse - Links auf Desktop */}
           {partnerLinked && (
             <Card className="border border-lavender/30 bg-white/80">
-              <div className="p-2 sm:p-5">
+              <div className="p-1.5 sm:p-5">
                 {analysisLoading ? (
-                  <div className="flex items-center justify-center py-4 sm:py-6">
-                    <Loader2 className="animate-spin text-lavender mr-2 sm:mr-3 w-5 h-5 sm:w-[24px] sm:h-[24px]" />
-                    <span className="text-sm sm:text-base text-midnight/70">Analysiere...</span>
+                  <div className="flex items-center justify-center py-1.5 sm:py-6">
+                    <Loader2 className="animate-spin text-lavender mr-2 w-4 h-4 sm:w-[24px] sm:h-[24px]" />
+                    <span className="text-xs sm:text-base text-midnight/70">Analysiere...</span>
                   </div>
                 ) : analysisError ? (
-                  <div className="flex items-center justify-center py-4 sm:py-6 text-red-600 text-sm sm:text-base">
-                    <AlertCircle className="w-5 h-5 sm:w-[24px] sm:h-[24px] mr-2 sm:mr-3" />
+                  <div className="flex items-center justify-center py-1.5 sm:py-6 text-red-600 text-xs sm:text-base">
+                    <AlertCircle className="w-4 h-4 sm:w-[24px] sm:h-[24px] mr-2" />
                     <span>{analysisError}</span>
                   </div>
                 ) : analysis ? (
                   <>
-                    <div className="flex items-start gap-2 sm:gap-3 bg-lavender/10 p-3 sm:p-5 rounded-xl mb-2 sm:mb-4 text-sm sm:text-base">
-                      <span className="text-xl sm:text-2xl">💜</span>
-                      <div className="text-midnight/90">{(() => {
-                        const allText = [analysis.summary, analysis.communication, analysis.attachment, analysis.values].join(' ');
-                        const sentences = allText.match(/[^.!?]+[.!?]+/g) || [allText];
-                        const summary = sentences.slice(0, 2).join(' ').trim();
-                        return replaceNamesWithEure(summary, userName, partnerName || '');
-                      })()}</div>
+                    <div className="flex items-start gap-1.5 sm:gap-3 bg-lavender/10 p-2 sm:p-5 rounded-lg sm:rounded-xl mb-1.5 sm:mb-4 text-xs sm:text-base">
+                      <span className="text-base sm:text-2xl">💜</span>
+                      <div className="text-midnight/90 leading-snug">
+                        {/* Mobile Version - 3 Sätze */}
+                        <div className="block sm:hidden">
+                          {(() => {
+                            const allText = [analysis.summary, analysis.communication, analysis.attachment, analysis.values].join(' ');
+                            const sentences = allText.match(/[^.!?]+[.!?]+/g) || [allText];
+                            const summary = sentences.slice(0, 3).join(' ').trim();
+                            return replaceNamesWithEure(summary, userName, partnerName || '');
+                          })()}
+                        </div>
+                        {/* Desktop Version - 3 Sätze */}
+                        <div className="hidden sm:block">
+                          {(() => {
+                            const allText = [analysis.summary, analysis.communication, analysis.attachment, analysis.values].join(' ');
+                            const sentences = allText.match(/[^.!?]+[.!?]+/g) || [allText];
+                            const summary = sentences.slice(0, 3).join(' ').trim();
+                            return replaceNamesWithEure(summary, userName, partnerName || '');
+                          })()}
+                        </div>
+                      </div>
                     </div>
+
                     {/* Stärken und Wachstum nur auf Desktop */}
                     <div className="hidden sm:grid grid-cols-2 gap-3">
                       <div className="bg-green-50 rounded-xl p-4">
@@ -760,22 +729,23 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
                         </ul>
                       </div>
                     </div>
+
                     <button
                       onClick={() => setShowFullAnalysis(true)}
-                      className="mt-2 sm:mt-4 px-4 sm:px-5 py-1.5 sm:py-2.5 rounded-xl bg-navlink text-white text-sm sm:text-base font-medium shadow hover:bg-navlink/80 transition w-full"
+                      className="w-full px-2 py-1 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl bg-navlink text-white text-[10px] sm:text-base font-medium shadow hover:bg-navlink/80 transition mt-0 sm:mt-4"
                     >
                       Ausführliche Analyse
                     </button>
                   </>
                 ) : (
-                  <div className="text-midnight/60 py-4 sm:py-6 text-center text-sm sm:text-base">Noch keine Analyse verfügbar.</div>
+                  <div className="text-midnight/60 py-1.5 sm:py-6 text-center text-xs sm:text-base">Noch keine Analyse verfügbar.</div>
                 )}
               </div>
             </Card>
           )}
 
           {/* Vibe Check - Rechts auf Desktop */}
-          <div className={`${partnerLinked ? '' : 'sm:col-span-2'} space-y-2 sm:space-y-4`}>
+          <div className={`${partnerLinked ? '' : 'sm:col-span-2'} space-y-0.5 sm:space-y-4`}>
             <WeeklyReflectionCard
               userId={userId || ''}
               partnerId={partnerId || undefined}
@@ -853,33 +823,19 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
               )}
             </div>
 
-            {/* Jahrestags-Hinweis - Original-Layout beibehalten */}
+            {/* Jahrestags-Hinweis - größer auf Mobile */}
             {relationshipStartDate && (
-              <div className="bg-white rounded-lg p-2 sm:p-4 shadow-sm flex items-center gap-1.5 sm:gap-3 text-[10px] sm:text-sm mt-2">
-                <Gift className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-lavender flex-shrink-0" />
+              <div className="bg-white rounded-lg shadow-sm p-2.5 flex items-center gap-2 text-xs">
+                <Gift className="w-4 h-4 text-lavender flex-shrink-0" />
                 {(() => {
                   const anniversary = getNextAnniversary();
                   if (!anniversary) return null;
 
                   if (anniversary.daysUntil === 0) {
-                    // Automatisch Federn vergeben am Jahrestag
-                    if (onFeatherBalanceChange) {
-                      onFeatherBalanceChange(100, 'anniversary_reward');
-                    }
                     return (
                       <div>
                         <p className="text-midnight">
                           <strong>Heute ist euer {anniversary.years}. Jahrestag!</strong> 🎉
-                        </p>
-                        <p className="text-amber-600 text-[10px] sm:text-sm mt-0.5 sm:mt-1 flex items-center gap-1 sm:gap-2">
-                          <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 sm:w-4 sm:h-4">
-                            <path
-                              d="M20.7 7.5c1.3 3.7.3 7.8-2.5 10.6-2.8 2.8-6.9 3.8-10.6 2.5l-3.1 3.1c-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.4-.4-.4-1 0-1.4l3.1-3.1c-1.3-3.7-.3-7.8 2.5-10.6 2.8-2.8 6.9-3.8 10.6-2.5l-7.5 7.5c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l7.5-7.5z"
-                              fill="url(#feather-gradient-anniversary)"
-                              className="drop-shadow-lg"
-                            />
-                          </svg>
-                          +100 Federn als Geschenk! 🎁
                         </p>
                       </div>
                     );
@@ -888,9 +844,9 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
                   return (
                     <p className="text-midnight">
                       {anniversary.daysUntil === 1 ? (
-                        <>Morgen ist euer <strong>{anniversary.years}. Jahrestag</strong> – Zeit für etwas Besonderes? 💝</>
+                        <>Morgen ist euer <strong>{anniversary.years}. Jahrestag</strong> 💝</>
                       ) : (
-                        <>Noch {anniversary.daysUntil} Tage bis zu eurem <strong>{anniversary.years}. Jahrestag</strong> – Zeit zu planen? 💭</>
+                        <>Noch {anniversary.daysUntil} Tage bis zu eurem <strong>{anniversary.years}. Jahrestag</strong> 💭</>
                       )}
                     </p>
                   );
@@ -1176,7 +1132,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance = 0, onFea
       {showShop && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setShowShop(false)}>
           <div className="w-full" onClick={e => e.stopPropagation()}>
-            <Shop featherBalance={featherBalance} onClose={() => setShowShop(false)} />
+            <Shop featherBalance={featherBalance || 0} onClose={() => setShowShop(false)} />
           </div>
         </div>
       )}
