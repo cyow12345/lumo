@@ -83,27 +83,10 @@ export default function Home() {
           </div>
         </div>
       )}
-      
-      <header className={`hidden md:block bg-white shadow-sm fixed ${showAppBanner ? 'top-[60px]' : 'top-0'} left-0 right-0 z-40 transition-all duration-300`}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20 pt-4">
-            <div className="flex items-center">
-              <Image
-                src="/Lumo_eule.png"
-                alt="Lumo Logo"
-                width={150}
-                height={35}
-                priority
-              />
-            </div>
-            {renderHeaderCTA()}
-          </div>
-        </div>
-      </header>
 
-      <div className={`${showAppBanner ? 'pt-[60px] md:pt-[140px]' : 'pt-0 md:pt-20'} transition-all duration-300`}>
+      <div className={`${showAppBanner ? 'pt-[60px]' : 'pt-0'} transition-all duration-300`}>
         {/* Hero-Section mit voller Viewport-Höhe */}
-        <div ref={heroRef} className={`bg-white ${showAppBanner ? 'h-[calc(100vh-60px)] md:h-[calc(100vh-140px)]' : 'h-screen md:h-[calc(100vh-5rem)]'} relative transition-all duration-300`}>
+        <div ref={heroRef} className={`bg-white ${showAppBanner ? 'h-[calc(100vh-60px)]' : 'h-screen'} relative transition-all duration-300`}>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
             <div className="grid md:grid-cols-2 gap-6 md:gap-6 items-center justify-items-center w-full -mt-12 md:-mt-36">
               <div className="flex justify-center order-1 md:order-1">
