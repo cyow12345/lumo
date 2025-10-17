@@ -24,7 +24,7 @@ const DatenschutzPage = () => (
           <h2 className="text-base font-semibold">1. Verantwortlicher</h2>
           <p>
             Verantwortlicher im Sinne der Datenschutzgrundverordnung (DSGVO) ist die <span className="italic">Lumo GmbH, Musterstraße 1,
-            12345 Berlin</span>, E-Mail: privacy@lumo.app.
+            12345 Berlin</span>, E-Mail: privacy@lumo.guru.
           </p>
 
           <h2 className="text-base font-semibold">2. Verarbeitung personenbezogener Daten</h2>
