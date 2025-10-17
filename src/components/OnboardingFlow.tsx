@@ -1056,7 +1056,7 @@ const OnboardingFlow = ({ onComplete, onCancel, isLoginOnboarding = false }: Onb
                       className="mt-0.5 form-checkbox text-navlink"
                     />
                     <span className="text-xs">
-                      Ich akzeptiere die <a href="/agb" target="_blank" className="underline hover:text-navlink">AGBs</a>
+                      Ich akzeptiere die <a href="/nutzungsbedingungen" target="_blank" className="underline hover:text-navlink">Nutzungsbedingungen</a>
                     </span>
                   </label>
                   <label className="flex items-start gap-2 text-sm text-midnight/80">

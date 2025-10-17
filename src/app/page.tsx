@@ -263,7 +263,7 @@ export default function Home() {
                 <h3 className="font-bold text-base md:text-lg mb-6">Rechtliches</h3>
                 <ul className="space-y-4 text-center md:text-left">
                   <li>
-                    <Link href="/agb" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">AGB</Link>
+                    <Link href="/nutzungsbedingungen" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Nutzungsbedingungen</Link>
                   </li>
                   <li>
                     <Link href="/datenschutz" className="text-sm md:text-base text-white hover:opacity-80 transition-colors">Datenschutz</Link>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-const AGBPage = () => (
+const NutzungsbedingungenPage = () => (
   <div className="fixed inset-0 bg-white/95 flex flex-col items-center justify-center overflow-hidden p-4">
     <div className="w-full max-w-2xl relative">
       <button 
@@ -13,7 +13,7 @@ const AGBPage = () => (
       </button>
       
       <div className="mt-12 mb-8 text-center">
-        <h1 className="text-2xl font-bold text-navlink">Allgemeine Geschäftsbedingungen (AGB)</h1>
+        <h1 className="text-2xl font-bold text-navlink">Nutzungsbedingungen</h1>
         <p className="text-sm text-midnight/80 mt-2">
           Stand: {new Date().toLocaleDateString('de-DE')}
         </p>
@@ -100,4 +100,4 @@ const AGBPage = () => (
   </div>
 );
 
-export default AGBPage; 
+export default NutzungsbedingungenPage; 

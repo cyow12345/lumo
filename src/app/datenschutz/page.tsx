@@ -13,7 +13,7 @@ const DatenschutzPage = () => (
       </button>
       
       <div className="mt-12 mb-8 text-center">
-        <h1 className="text-2xl font-bold text-navlink">Datenschutzerklärung</h1>
+        <h1 className="text-2xl font-bold text-navlink">Datenschutz</h1>
         <p className="text-sm text-midnight/80 mt-2">
           Stand: {new Date().toLocaleDateString('de-DE')}
         </p>
