@@ -26,7 +26,7 @@ export default function Impressum() {
               <h3 className="text-lg md:text-xl font-semibold text-gray-900 mt-6 mb-2">So erreichst du uns</h3>
               <p className="text-sm md:text-base text-gray-700">
                 Telefon: +49 (0) 40 123456789<br />
-                E-Mail: moin@lumo-app.de
+                E-Mail: info@lumo.guru
               </p>
 
               <h3 className="text-lg md:text-xl font-semibold text-gray-900 mt-6 mb-2">Die offiziellen Sachen</h3>

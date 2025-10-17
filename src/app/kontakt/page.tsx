@@ -51,8 +51,8 @@ export default function Kontakt() {
                 <div className="bg-white/50 rounded-lg p-4 md:p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Schreib uns</h3>
                   <p className="text-sm md:text-base text-gray-600">
-                    Allgemein: moin@lumo-app.de<br />
-                    Support: hilfe@lumo-app.de
+                    Allgemein: info@lumo.guru<br />
+                    Support: support@lumo.guru
                   </p>
                 </div>
 
