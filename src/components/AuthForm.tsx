@@ -1,26 +1,44 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { authService } from '../services/authService';
 import './AuthForm.css';
 
 interface AuthFormProps {
-  onSubmit: (user: { name?: string; email: string }, password: string, isLogin: boolean) => void;
+  onSuccess?: () => void;
   initialMode?: 'login' | 'register';
   isLoading?: boolean;
 }
 
-export default function AuthForm({ onSubmit, initialMode = 'login', isLoading = false }: AuthFormProps) {
+export default function AuthForm({ onSuccess, initialMode = 'login', isLoading = false }: AuthFormProps) {
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === 'forgot') {
-      handleForgotPassword();
-    } else {
-      onSubmit({ name, email }, password, mode === 'login');
+    setError(null);
+    setLoading(true);
+
+    try {
+      if (mode === 'forgot') {
+        await handleForgotPassword();
+      } else if (mode === 'login') {
+        const { user, error } = await authService.signIn(email, password);
+        if (error) throw error;
+        if (user && onSuccess) onSuccess();
+      } else if (mode === 'register') {
+        const { user, error } = await authService.signUp(email, password, name);
+        if (error) throw error;
+        if (user && onSuccess) onSuccess();
+      }
+    } catch (err: any) {
+      setError(err.message || 'Ein Fehler ist aufgetreten');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,8 +51,8 @@ export default function AuthForm({ onSubmit, initialMode = 'login', isLoading = 
       if (error) throw error;
       
       setResetEmailSent(true);
-    } catch (error) {
-      console.error('Fehler beim Zurücksetzen des Passworts:', error);
+    } catch (error: any) {
+      setError(error.message || 'Fehler beim Zurücksetzen des Passworts');
     }
   };
 
@@ -53,6 +71,21 @@ export default function AuthForm({ onSubmit, initialMode = 'login', isLoading = 
              'Wir senden dir eine E-Mail mit Anweisungen, wie du dein Passwort zurücksetzen kannst.'}
           </p>
         </div>
+
+        {error && (
+          <div className="rounded-xl bg-red-50 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {mode === 'register' && (
           <div>
@@ -130,9 +163,9 @@ export default function AuthForm({ onSubmit, initialMode = 'login', isLoading = 
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-lavendel to-lavendelHover text-white py-3 px-6 rounded-xl hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-semibold text-lg"
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? 'Bitte warten...' : 
+            {loading ? 'Bitte warten...' : 
              mode === 'login' ? 'Anfangen' :
              mode === 'register' ? 'Account erstellen' :
              'Senden'}

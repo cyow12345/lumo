@@ -1,27 +1,19 @@
--- Drop existing trigger if exists
+-- Drop the existing trigger
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- Drop the existing function
 DROP FUNCTION IF EXISTS public.handle_new_user();
 
--- Create function to handle new user creation
+-- Create a new function that doesn't automatically create a profile
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO public.user_profiles (
-        id,
-        name,
-        age,
-        gender
-    ) VALUES (
-        NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'name', 'Neuer Benutzer'),
-        COALESCE((NEW.raw_user_meta_data->>'age')::int, 18),
-        COALESCE(NEW.raw_user_meta_data->>'gender', 'no_answer')
-    );
+    -- Just return the new user without creating a profile
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create trigger for new user creation
+-- Create a new trigger that just handles the auth event
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

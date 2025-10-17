@@ -34,6 +34,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <head>
         <link rel="icon" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/favicon.png" />
+        
+        {/* iOS Smart App Banner */}
+        <meta name="apple-itunes-app" content="app-id=123456789" />
+        
+        {/* Android App Banner */}
+        <meta name="google-play-app" content="app-id=com.lumo.app" />
+        
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        
+        {/* Meta Tags für App */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Lumo" />
       </head>
       <body>
         <Providers>

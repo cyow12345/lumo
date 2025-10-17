@@ -1139,43 +1139,43 @@ const Dashboard: React.FC<DashboardProps> = ({ userId, featherBalance, onFeather
 
       {/* Mobile Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-lavender/20 sm:hidden z-50">
-        <div className="flex justify-around items-center py-2">
+        <div className="flex justify-around items-center py-1">
           <button
             onClick={() => {
               setActiveTab('home');
               setShowFullAnalysis(false);  // Schließe die Analyse
             }}
-            className={`flex flex-col items-center gap-1 ${
+            className={`flex flex-col items-center gap-0 ${
               activeTab === 'home' ? 'text-navlink' : 'text-midnight/60'
             }`}
           >
-            <Home className="w-6 h-6" />
-            <span className="text-[10px]">Home</span>
+            <Home className="w-4 h-4" />
+            <span className="text-[8px] mt-0.5">Home</span>
           </button>
-          <button
+                      <button
             onClick={handleProfile}
-            className={`flex flex-col items-center gap-1 ${
+            className={`flex flex-col items-center gap-0 ${
               activeTab === 'profile' ? 'text-navlink' : 'text-midnight/60'
             }`}
           >
-            <UserIcon className="w-6 h-6" />
-            <span className="text-[10px]">Profil</span>
+            <UserIcon className="w-4 h-4" />
+            <span className="text-[8px] mt-0.5">Profil</span>
           </button>
           <button
             onClick={handleSettings}
-            className={`flex flex-col items-center gap-1 ${
+            className={`flex flex-col items-center gap-0 ${
               activeTab === 'settings' ? 'text-navlink' : 'text-midnight/60'
             }`}
           >
-            <SettingsIcon className="w-6 h-6" />
-            <span className="text-[10px]">Einstellungen</span>
+            <SettingsIcon className="w-4 h-4" />
+            <span className="text-[8px] mt-0.5">Einstellungen</span>
           </button>
           <button
             onClick={handleLogout}
-            className="flex flex-col items-center gap-1 text-midnight/60"
+            className="flex flex-col items-center gap-0 text-midnight/60"
           >
-            <LogOut className="w-6 h-6" />
-            <span className="text-[10px]">Abmelden</span>
+            <LogOut className="w-4 h-4" />
+            <span className="text-[8px] mt-0.5">Abmelden</span>
           </button>
         </div>
       </nav>
