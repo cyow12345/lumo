@@ -51,32 +51,32 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-lavender/5 to-white">
       {/* Smart App Banner */}
       {showAppBanner && (
-        <div className="bg-white border-b border-gray-200 px-4 py-3 fixed top-0 left-0 right-0 z-50 shadow-sm">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="bg-white border-b border-gray-200 px-3 py-2 fixed top-0 left-0 right-0 z-50 shadow-sm">
+          <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
             <button
               onClick={() => setShowAppBanner(false)}
-              className="text-gray-500 hover:text-gray-700 p-1"
+              className="text-gray-500 hover:text-gray-700 p-0.5 flex-shrink-0"
             >
               ✕
             </button>
-            <div className="flex items-center gap-3 flex-1 mx-4">
-              <div className="w-[50px] h-[50px] rounded-xl overflow-hidden flex-shrink-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="w-[40px] h-[40px] rounded-xl overflow-hidden flex-shrink-0">
                 <Image
                   src="/lumo_logo_upscaled.png"
                   alt="Lumo"
-                  width={50}
-                  height={50}
+                  width={40}
+                  height={40}
                   className="object-cover"
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm text-gray-900 truncate">Lumo - Beziehungs-Coach</h3>
-                <p className="text-xs text-gray-600 truncate">Relationship, KI-Coaching & Mehr</p>
+                <h3 className="font-semibold text-xs text-gray-900 truncate">Lumo - Beziehungs-Coach</h3>
+                <p className="text-[10px] text-gray-600 truncate">Relationship, KI-Coaching</p>
               </div>
             </div>
             <button
               onClick={handleAppDownload}
-              className="bg-[#007AFF] text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-[#0051D5] transition-colors flex-shrink-0"
+              className="bg-[#007AFF] text-white px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-[#0051D5] transition-colors flex-shrink-0"
             >
               LADEN
             </button>
@@ -84,9 +84,9 @@ export default function Home() {
         </div>
       )}
 
-      <div className={`${showAppBanner ? 'pt-[60px]' : 'pt-0'} transition-all duration-300`}>
+      <div className={`${showAppBanner ? 'pt-[48px]' : 'pt-0'} transition-all duration-300`}>
         {/* Hero-Section mit voller Viewport-Höhe */}
-        <div ref={heroRef} className={`bg-white ${showAppBanner ? 'h-[calc(100vh-60px)]' : 'h-screen'} relative transition-all duration-300`}>
+        <div ref={heroRef} className={`bg-white ${showAppBanner ? 'h-[calc(100vh-48px)]' : 'h-screen'} relative transition-all duration-300`}>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
             <div className="grid md:grid-cols-2 gap-6 md:gap-6 items-center justify-items-center w-full -mt-12 md:-mt-36">
               <div className="flex justify-center order-1 md:order-1">
