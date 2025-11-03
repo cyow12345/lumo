@@ -70,8 +70,8 @@ export default function Home() {
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-xs text-gray-900 truncate">Lumo - Beziehungs-Coach</h3>
-                <p className="text-[10px] text-gray-600 truncate">Relationship, KI-Coaching</p>
+                <h3 className="font-semibold text-xs text-gray-900 truncate">Lumo – Gemeinsam wachsen mit KI</h3>
+                <p className="text-[10px] text-gray-600 truncate">Verbessert Kommunikation, 100 % privat.</p>
               </div>
             </div>
             <button
@@ -101,9 +101,12 @@ export default function Home() {
               </div>
 
               <div className="flex flex-col items-center max-w-sm order-2 md:order-2">
-                <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6 text-center px-4">
-                  Effektiv und kostenlos deine Beziehung stärken – mit KI-Coaching!
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 md:mb-4 text-center px-4">
+                  Wachst gemeinsam. Mit KI, die euch versteht.
                 </h1>
+                <p className="text-sm md:text-lg text-gray-600 mb-4 md:mb-6 text-center px-4">
+                  Der erste KI-Coach, mit dem ihr als Paar zusammen chattet – für mehr Tiefe, mehr Verständnis, mehr Verbindung.
+                </p>
 
                 <div className="w-full px-4 md:px-0 space-y-4">
                   <button 
@@ -111,11 +114,11 @@ export default function Home() {
                     className="w-full bg-gradient-to-r from-navlink to-lavender text-white py-4 px-6 rounded-xl hover:brightness-105 transition duration-200 font-semibold shadow-lg shadow-lavender/30 text-base flex items-center justify-center gap-3"
                   >
                     <Apple className="w-6 h-6" />
-                    Jetzt im App Store laden
+                    Kostenlos starten
                   </button>
 
-                  <p className="text-center text-sm text-gray-600">
-                    Verfügbar für iOS · Kostenlos
+                  <p className="text-center text-xs md:text-sm text-gray-600">
+                    Frankfurt-Server · DSGVO-konform
                   </p>
                 </div>
               </div>
@@ -127,16 +130,16 @@ export default function Home() {
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#4b4b4b]">94%</div>
-                  <div className="mt-1 text-sm text-[#4b4b4b]">Zufriedene Paare</div>
+                  <div className="text-2xl font-bold text-[#2B237C]">10+ Experten</div>
+                  <div className="mt-1 text-sm text-gray-600">Psychologen & Coaches</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#4b4b4b]">15 Min</div>
-                  <div className="mt-1 text-sm text-[#4b4b4b]">Tägliche Gespräche</div>
+                  <div className="text-2xl font-bold text-[#2B237C]">1.200+ Gespräche</div>
+                  <div className="mt-1 text-sm text-gray-600">Training-Datenbasis</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#4b4b4b]">Kostenlos</div>
-                  <div className="mt-1 text-sm text-[#4b4b4b]">Aktuell</div>
+                  <div className="text-2xl font-bold text-[#2B237C]">€150/Std Wert</div>
+                  <div className="mt-1 text-sm text-gray-600">Kostenlos für euch</div>
                 </div>
               </div>
             </div>
@@ -149,12 +152,12 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-2 md:gap-12 items-center mb-20 md:mb-32">
               <div className="space-y-4 md:space-y-6 text-center md:text-left">
                 <h2 className="text-2xl md:text-[52px] font-bold text-[#2B237C] leading-tight">
-                  KI-gestützt.<br />
-                  Intelligent.<br />
-                  Intuitiv.
+                  Chattet<br />
+                  gemeinsam<br />
+                  mit eurer KI
                 </h2>
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-md mx-auto md:mx-0">
-                  Mit seiner <span className="text-[#2B237C] font-semibold">feinen KI-Nase</span> erkennt Lumo eure Gefühle und Muster. Unser kluges Köpfchen denkt mit und unterstützt euch dabei, eure Beziehung noch stärker zu machen.
+                  <span className="text-[#2B237C] font-semibold">Beide Partner im gleichen Chat.</span> Gemeinsam verstehen, gemeinsam wachsen – mit eurem persönlichen Beziehungs-Coach. Keine getrennten Chats. Keine Missverständnisse.
                 </p>
               </div>
               <div className="relative -mt-2 md:mt-0">
@@ -185,12 +188,12 @@ export default function Home() {
               </div>
               <div className="space-y-4 md:space-y-6 text-center md:text-left order-1 md:order-2">
                 <h2 className="text-2xl md:text-[52px] font-bold text-[#2B237C] leading-tight">
-                  Persönlich.<br />
-                  Liebevoll.<br />
-                  Passend.
+                  Echte Ziele.<br />
+                  Echte<br />
+                  Entwicklung.
                 </h2>
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-md mx-auto md:mx-0">
-                  <span className="text-[#2B237C] font-semibold">Lumo kennt euch</span> und eure einzigartige Beziehung. Er gibt euch liebevolle Tipps, die genau zu euch passen und hilft euch dabei, eure Verbindung zu stärken.
+                  <span className="text-[#2B237C] font-semibold">Keine Floskeln.</span> Konkrete Impulse, wöchentliche Reflexion und Ziele, die ihr wirklich erreicht. Mit Weekly Vibe Checks, Relationship Analysis und KI-gestützter Planung.
                 </p>
               </div>
             </div>
@@ -199,12 +202,12 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-2 md:gap-12 items-center mb-12 md:mb-32">
               <div className="space-y-4 md:space-y-6 text-center md:text-left">
                 <h2 className="text-2xl md:text-[52px] font-bold text-[#2B237C] leading-tight">
-                  Kuschelig.<br />
-                  Sanft.<br />
-                  Herzlich.
+                  Eure Daten<br />
+                  bleiben in<br />
+                  Deutschland
                 </h2>
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-md mx-auto md:mx-0">
-                  <span className="text-[#2B237C] font-semibold">Präventiver Ansatz</span> - Sanft und mit viel Herz zeigt Lumo euch, wo's hakt. Dabei bleibt er immer kuschelig statt kritisch.
+                  <span className="text-[#2B237C] font-semibold">Frankfurt-Server (eu-central-1).</span> DSGVO-konform seit Tag 1. Vollständiger Datenexport jederzeit. Kein Tracking, keine Werbung. Eure Beziehung bleibt eure.
                 </p>
               </div>
               <div className="relative -mt-2 md:mt-0">
@@ -217,6 +220,42 @@ export default function Home() {
                     priority
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Trust & Expertise Sektion */}
+        <div className="bg-gradient-to-b from-white to-[#F3E8FF]/30 py-16 md:py-24">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12 md:mb-16">
+              <h2 className="text-2xl md:text-4xl font-bold text-[#2B237C] mb-4">
+                10 Beziehungsexperten.<br />
+                Eine KI.
+              </h2>
+              <p className="text-base md:text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+                Wir haben Psychologen, Paartherapeuten und Coaches interviewt, um Lumo zu trainieren. 
+                Das Ergebnis: <span className="text-[#2B237C] font-semibold">Expertise, die sonst €150/Stunde kostet – für euch zugänglich.</span>
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+              <div className="text-center">
+                <div className="text-5xl md:text-6xl font-bold text-[#2B237C] mb-2">10+</div>
+                <div className="text-base md:text-lg font-semibold text-gray-900 mb-1">Experten-Interviews</div>
+                <div className="text-sm text-gray-600">Psychologen, Therapeuten, Coaches</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-5xl md:text-6xl font-bold text-[#2B237C] mb-2">1.200+</div>
+                <div className="text-base md:text-lg font-semibold text-gray-900 mb-1">Trainings-Gespräche</div>
+                <div className="text-sm text-gray-600">Echte Paardialoge, kuratiert</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-5xl md:text-6xl font-bold text-[#2B237C] mb-2">€0</div>
+                <div className="text-base md:text-lg font-semibold text-gray-900 mb-1">Statt €150/Stunde</div>
+                <div className="text-sm text-gray-600">Therapie-Level Insights, kostenlos</div>
               </div>
             </div>
           </div>

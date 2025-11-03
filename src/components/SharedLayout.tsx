@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import OnboardingFlow from './OnboardingFlow';
 
 interface SharedLayoutProps {
   children: React.ReactNode;
 }
 
 export default function SharedLayout({ children }: SharedLayoutProps) {
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-lavender/5 to-white">
@@ -33,22 +31,6 @@ export default function SharedLayout({ children }: SharedLayoutProps) {
                   </div>
                 </Link>
               </div>
-            </div>
-
-            {/* Navigation Buttons (Mobile & Desktop) */}
-            <div className="flex items-center space-x-2 md:space-x-4">
-              <Link 
-                href="/anmelden"
-                className="text-gray-700 hover:text-purple-600 transition-colors font-medium bg-gray-50 md:bg-transparent px-3 md:px-0 py-1.5 md:py-0 rounded-lg md:rounded-none text-sm md:text-base"
-              >
-                Anmelden
-              </Link>
-              <button 
-                onClick={() => setShowOnboarding(true)}
-                className="bg-[#332d6e] text-white px-4 md:px-6 py-1.5 md:py-2 rounded-lg text-sm md:text-base hover:bg-[#2a2558] transition-colors font-medium"
-              >
-                Anfangen
-              </button>
             </div>
           </div>
         </div>
@@ -113,17 +95,6 @@ export default function SharedLayout({ children }: SharedLayoutProps) {
           </div>
         </div>
       </footer>
-
-      {/* Onboarding Modal */}
-      {showOnboarding && (
-        <OnboardingFlow
-          onComplete={(userData) => {
-            console.log('Onboarding completed:', userData);
-            setShowOnboarding(false);
-          }}
-          onCancel={() => setShowOnboarding(false)}
-        />
-      )}
     </div>
   );
 } 
