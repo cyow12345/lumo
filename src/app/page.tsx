@@ -70,8 +70,8 @@ export default function Home() {
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-xs text-gray-900 truncate">Lumo – Gemeinsam wachsen mit KI</h3>
-                <p className="text-[10px] text-gray-600 truncate">Verbessert Kommunikation, 100 % privat.</p>
+                <h3 className="font-semibold text-xs text-gray-900 truncate">Lumo – Versteht euch einfach besser</h3>
+                <p className="text-[10px] text-gray-600 truncate">Kostenlos testen, dann 3,33 €/Monat für beide.</p>
               </div>
             </div>
             <button
@@ -102,10 +102,10 @@ export default function Home() {
 
               <div className="flex flex-col items-center max-w-sm order-2 md:order-2">
                 <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 md:mb-4 text-center px-4">
-                  Wachst gemeinsam. Mit KI, die euch versteht.
+                  Endlich wieder wir.
                 </h1>
                 <p className="text-sm md:text-lg text-gray-600 mb-4 md:mb-6 text-center px-4">
-                  Der erste KI-Coach, mit dem ihr als Paar zusammen chattet – für mehr Tiefe, mehr Verständnis, mehr Verbindung.
+                  Euer KI-Begleiter, der übersetzt, was wirklich gemeint ist. Für mehr Verständnis und weniger Missverständnisse. Privat, sicher, jederzeit.
                 </p>
 
                 <div className="w-full px-4 md:px-0 space-y-4">
@@ -114,32 +114,36 @@ export default function Home() {
                     className="w-full bg-gradient-to-r from-navlink to-lavender text-white py-4 px-6 rounded-xl hover:brightness-105 transition duration-200 font-semibold shadow-lg shadow-lavender/30 text-base flex items-center justify-center gap-3"
                   >
                     <Apple className="w-6 h-6" />
-                    Kostenlos starten
+                    7 Tage kostenlos testen
                   </button>
 
                   <p className="text-center text-xs md:text-sm text-gray-600">
-                    Frankfurt-Server · DSGVO-konform
+                    Keine Kreditkarte nötig · Jederzeit kündbar
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Statistik-Sektion am unteren Rand des Viewports - ausgeblendet auf Mobilgeräten */}
+          {/* Trust Signals am unteren Rand des Viewports - ausgeblendet auf Mobilgeräten */}
           <div className="hidden md:block absolute bottom-0 left-0 right-0 bg-white py-6 border-y border-gray-200">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-4 gap-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#2B237C]">10+ Experten</div>
-                  <div className="mt-1 text-sm text-gray-600">Psychologen & Coaches</div>
+                  <div className="text-xl font-bold text-[#2B237C]">✓</div>
+                  <div className="mt-1 text-sm text-gray-600">Kostenlos testen</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#2B237C]">1.200+ Gespräche</div>
-                  <div className="mt-1 text-sm text-gray-600">Training-Datenbasis</div>
+                  <div className="text-xl font-bold text-[#2B237C]">✓</div>
+                  <div className="mt-1 text-sm text-gray-600">Erinnerung vor Abo-Start</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[#2B237C]">€150/Std Wert</div>
-                  <div className="mt-1 text-sm text-gray-600">Kostenlos für euch</div>
+                  <div className="text-xl font-bold text-[#2B237C]">✓</div>
+                  <div className="mt-1 text-sm text-gray-600">Jederzeit kündbar</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-[#2B237C]">✓</div>
+                  <div className="mt-1 text-sm text-gray-600">Keine versteckten Kosten</div>
                 </div>
               </div>
             </div>
@@ -152,19 +156,18 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-2 md:gap-12 items-center mb-20 md:mb-32">
               <div className="space-y-4 md:space-y-6 text-center md:text-left">
                 <h2 className="text-2xl md:text-[52px] font-bold text-[#2B237C] leading-tight">
-                  Chattet<br />
-                  gemeinsam<br />
-                  mit eurer KI
+                  Versteht, was<br />
+                  dahinter steckt
                 </h2>
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-md mx-auto md:mx-0">
-                  <span className="text-[#2B237C] font-semibold">Beide Partner im gleichen Chat.</span> Gemeinsam verstehen, gemeinsam wachsen – mit eurem persönlichen Beziehungs-Coach. Keine getrennten Chats. Keine Missverständnisse.
+                  Aus 'Du nie' wird 'Ich brauche'. Lumo hilft euch, die Wünsche hinter den Worten zu hören und macht aus Sprachlosigkeit wieder Verbindung.
                 </p>
               </div>
               <div className="relative -mt-2 md:mt-0">
                 <div className="relative w-full aspect-square max-w-[260px] md:max-w-[420px] mx-auto">
                   <Image
                     src="/lumo_mitpaar.png"
-                    alt="Lumo sitzt mit einem Paar zusammen"
+                    alt="Lumo moderiert eure Gespräche"
                     fill
                     className="object-contain"
                     priority
@@ -188,12 +191,11 @@ export default function Home() {
               </div>
               <div className="space-y-4 md:space-y-6 text-center md:text-left order-1 md:order-2">
                 <h2 className="text-2xl md:text-[52px] font-bold text-[#2B237C] leading-tight">
-                  Echte Ziele.<br />
-                  Echte<br />
-                  Entwicklung.
+                  Eure Beziehung<br />
+                  im Blick
                 </h2>
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-md mx-auto md:mx-0">
-                  <span className="text-[#2B237C] font-semibold">Keine Floskeln.</span> Konkrete Impulse, wöchentliche Reflexion und Ziele, die ihr wirklich erreicht. Mit Weekly Vibe Checks, Relationship Analysis und KI-gestützter Planung.
+                  <span className="text-[#2B237C] font-semibold">Erkennt eure Muster und wachst gemeinsam.</span> Lumo zeigt euch nicht nur, wo ihr steht, sondern auch, wie ihr Schritt für Schritt näher zueinander findet.
                 </p>
               </div>
             </div>
@@ -230,12 +232,14 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center mb-12 md:mb-16">
               <h2 className="text-2xl md:text-4xl font-bold text-[#2B237C] mb-4">
-                10 Beziehungsexperten.<br />
-                Eine KI.
+                Investiert in euer "Wir"
               </h2>
               <p className="text-base md:text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
-                Wir haben Psychologen, Paartherapeuten und Coaches interviewt, um Lumo zu trainieren. 
-                Das Ergebnis: <span className="text-[#2B237C] font-semibold">Expertise, die sonst €150/Stunde kostet – für euch zugänglich.</span>
+                Weniger als der Kaffee am Morgen – für eine glücklichere Beziehung.
+                <br />
+                <span className="text-[#2B237C] font-semibold">Nur 3,33 € pro Monat für beide.</span> Das sind 1,67 € pro Person.
+                <br />
+                Günstiger als eine Stunde Paartherapie. Lumo ist 24/7 für euch da.
               </p>
             </div>
             
@@ -253,9 +257,9 @@ export default function Home() {
               </div>
               
               <div className="text-center">
-                <div className="text-5xl md:text-6xl font-bold text-[#2B237C] mb-2">€0</div>
+                <div className="text-5xl md:text-6xl font-bold text-[#2B237C] mb-2">3,33 €</div>
                 <div className="text-base md:text-lg font-semibold text-gray-900 mb-1">Statt €150/Stunde</div>
-                <div className="text-sm text-gray-600">Therapie-Level Insights, kostenlos</div>
+                <div className="text-sm text-gray-600">Pro Monat. Für beide Partner.</div>
               </div>
             </div>
           </div>

@@ -38,6 +38,7 @@ const DatenschutzPage = () => (
             <li><strong>Nutzergenerierte Inhalte:</strong> Chat-Nachrichten mit dem KI-Coach, gemeinsame Ziele, Vibe Check-Einträge, "Ich denk an dich"-Nachrichten</li>
             <li><strong>Nutzungsdaten:</strong> App-Interaktionen (zur Missbrauchsprävention und Kostenkontrolle)</li>
             <li><strong>Technische Daten:</strong> Geräte-Token für Push-Benachrichtigungen</li>
+            <li><strong>Geräteerkennung:</strong> Verschlüsselter Geräte-Identifikator (Device Fingerprint) zur Missbrauchsprävention</li>
           </ul>
 
           <h2 className="text-base font-semibold">3. Zweck &amp; Rechtsgrundlage</h2>
@@ -50,6 +51,9 @@ const DatenschutzPage = () => (
             </li>
             <li>
               <strong>Verbesserung des Angebots</strong> durch anonymisierte Statistiken (Art. 6 Abs. 1 lit. f DSGVO)
+            </li>
+            <li>
+              <strong>Missbrauchsprävention</strong> (Art. 6 Abs. 1 lit. f DSGVO – berechtigtes Interesse)
             </li>
           </ul>
 
@@ -123,7 +127,38 @@ const DatenschutzPage = () => (
             lit. b DSGVO).
           </p>
 
-          <h2 className="text-base font-semibold">8. Cookies, Tracking &amp; Werbung</h2>
+          <h2 className="text-base font-semibold">8. Geräteerkennung zur Missbrauchsprävention</h2>
+          <p>
+            Um sicherzustellen, dass unsere kostenlose Testphase fair genutzt wird, speichern wir einen 
+            verschlüsselten Geräte-Identifikator (Device Fingerprint). Dieser wird verwendet, um zu verhindern, 
+            dass dieselbe Testphase mehrfach auf einem Gerät genutzt wird.
+          </p>
+          <p className="mt-2">
+            <strong>Erfasste Daten:</strong>
+          </p>
+          <ul className="list-none space-y-2 mt-2">
+            <li>• iOS: IDFV (Identifier for Vendor) – eine von Apple bereitgestellte Geräte-ID</li>
+            <li>• Android: Android-ID – eine eindeutige Geräte-ID</li>
+          </ul>
+          <p className="mt-2">
+            Diese IDs werden mit SHA-256 verschlüsselt (gehashed), bevor sie gespeichert werden. Eine direkte 
+            Rückverfolgung zum Gerät ist nicht möglich.
+          </p>
+          <p className="mt-2">
+            <strong>Zweck:</strong> Verhinderung von Missbrauch der kostenlosen Testphase
+          </p>
+          <p className="mt-2">
+            <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse)
+          </p>
+          <p className="mt-2">
+            <strong>Speicherdauer:</strong> Bis zur Löschung des Accounts oder auf Anfrage
+          </p>
+          <p className="mt-2">
+            <strong>Keine Tracking-Zwecke:</strong> Der Device Fingerprint wird ausschließlich zur Missbrauchsprävention 
+            verwendet, nicht für Tracking, Werbung oder Analyse.
+          </p>
+
+          <h2 className="text-base font-semibold">9. Cookies, Tracking &amp; Werbung</h2>
           <p>
             <strong>Kein Werbe-Tracking:</strong> Unsere App verwendet KEINE Tracking-Tools für Werbezwecke.
             Es werden keine Daten an Werbenetzwerke (Google Ads, Facebook, etc.) weitergegeben.
@@ -138,7 +173,7 @@ const DatenschutzPage = () => (
             NICHT für Werbung oder externe Analysen verwendet.
           </p>
 
-          <h2 className="text-base font-semibold">9. Datensicherheit</h2>
+          <h2 className="text-base font-semibold">10. Datensicherheit</h2>
           <p>
             Wir setzen geeignete technische und organisatorische Maßnahmen ein, um Ihre Daten vor Verlust,
             Missbrauch oder unbefugtem Zugriff zu schützen:
@@ -151,7 +186,7 @@ const DatenschutzPage = () => (
             <li><strong>Zugriffskontrolle:</strong> Strikte Berechtigungssysteme für Backend-Zugriffe</li>
           </ul>
 
-          <h2 className="text-base font-semibold">10. Mindestalter</h2>
+          <h2 className="text-base font-semibold">11. Mindestalter</h2>
           <p>
             Unsere App richtet sich ausschließlich an Personen ab 17 Jahren. Wir verarbeiten wissentlich
             keine Daten von Personen unter 17 Jahren. Falls Sie als Erziehungsberechtigter feststellen,
@@ -159,14 +194,14 @@ const DatenschutzPage = () => (
             kontaktieren Sie uns bitte unter privacy@lumo.guru, damit wir die Daten umgehend löschen können.
           </p>
 
-          <h2 className="text-base font-semibold">11. Beschwerderecht</h2>
+          <h2 className="text-base font-semibold">12. Beschwerderecht</h2>
           <p>
             Ihnen steht ein Beschwerderecht bei einer Aufsichtsbehörde zu – zuständig ist in der Regel der
             Landesdatenschutzbeauftragte Ihres Wohnsitzes oder der Hamburgische Beauftragte für Datenschutz
             und Informationsfreiheit.
           </p>
 
-          <h2 className="text-base font-semibold">12. Änderungen der Datenschutzerklärung</h2>
+          <h2 className="text-base font-semibold">13. Änderungen der Datenschutzerklärung</h2>
           <p className="mb-8">
             Wir behalten uns vor, diese Datenschutzerklärung anzupassen, um sie an geänderte
             Rechtslagen oder neue Funktionen der App anzupassen. Die jeweils aktuelle Version ist stets

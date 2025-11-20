@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "S2L7KLRB6C.com.lumo.lumoMobile",
+        "paths": [
+          "/reset-password*"
+        ]
+      }
+    ]
+  }
+}
+

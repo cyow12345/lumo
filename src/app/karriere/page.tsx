@@ -71,9 +71,12 @@ export default function Karriere() {
                     </span>
                   </div>
                   <p className="text-sm md:text-base text-gray-600 mb-5">{position.description}</p>
-                  <button className="w-full md:w-auto bg-[#332d6e] text-white px-6 py-2.5 rounded-lg hover:bg-[#2a2558] transition-colors text-sm md:text-base font-medium">
+                  <a 
+                    href={`mailto:info@lumo.guru?subject=Bewerbung: ${position.title}`}
+                    className="inline-block w-full md:w-auto bg-[#332d6e] text-white px-6 py-2.5 rounded-lg hover:bg-[#2a2558] transition-colors text-sm md:text-base font-medium text-center"
+                  >
                     Lass uns schnacken!
-                  </button>
+                  </a>
                 </div>
               ))}
             </div>
@@ -84,9 +87,12 @@ export default function Karriere() {
             <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8">
               Kein Problem! Schreib uns einfach, was du drauf hast - wir sind immer offen für neue Gesichter! ✨
             </p>
-            <button className="w-full md:w-auto bg-[#332d6e] text-white px-8 py-3 rounded-lg hover:bg-[#2a2558] transition-colors text-sm md:text-base font-medium">
+            <a 
+              href="mailto:info@lumo.guru?subject=Initiativbewerbung"
+              className="inline-block w-full md:w-auto bg-[#332d6e] text-white px-8 py-3 rounded-lg hover:bg-[#2a2558] transition-colors text-sm md:text-base font-medium"
+            >
               Hier lang!
-            </button>
+            </a>
           </section>
         </div>
       </div>

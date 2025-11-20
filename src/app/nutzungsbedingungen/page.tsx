@@ -36,6 +36,16 @@ const NutzungsbedingungenPage = () => (
             Verbesserung zwischenmenschlicher Beziehungen. Der Funktionsumfang ergibt sich aus der zum
             Zeitpunkt des Vertragsschlusses gültigen Leistungsbeschreibung.
           </p>
+          <p className="mt-4 font-semibold">
+            ⚠️ Wichtiger Hinweis:
+          </p>
+          <p>
+            Lumo ist ein KI-basiertes Coaching-Tool und ersetzt keine professionelle Paartherapie, 
+            psychologische Beratung oder medizinische Behandlung. Die angebotenen Inhalte dienen der 
+            Unterstützung und persönlichen Entwicklung, nicht der Diagnose oder Behandlung von psychischen 
+            Erkrankungen oder Beziehungskrisen. Bei schwerwiegenden Problemen empfehlen wir die Konsultation 
+            eines qualifizierten Therapeuten oder Beraters.
+          </p>
 
           <h2 className="text-base font-semibold">3. Registrierung &amp; Vertragsschluss</h2>
           <p>
