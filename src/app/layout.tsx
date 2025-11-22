@@ -4,8 +4,8 @@ import { ReactNode } from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Lumo | Endlich wieder wir – Euer KI-Coach',
-  description: 'Lumo moderiert eure Gespräche und hilft euch, euch zu verstehen. 24/7 verfügbar für 3,33 €/Monat (für beide). Keine Missverständnisse, kein Therapie-Vibe. 7 Tage kostenlos testen.',
+  title: 'Lumo: KI für Paare & Liebe – Täglich mehr Nähe & Liebe',
+  description: 'Lumo übersetzt, was gemeint ist. "Nie machst du..." wird zu "Ich brauche mehr von uns." 24/7 verfügbar für 3,33 €/Monat (für beide). 7 Tage kostenlos testen.',
   icons: {
     icon: [
       {
