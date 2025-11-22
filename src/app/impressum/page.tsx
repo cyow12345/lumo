@@ -17,9 +17,9 @@ export default function Impressum() {
             <section className="mb-8 md:mb-12 bg-white/50 rounded-lg p-6 md:p-8">
               <h2 className="text-xl md:text-2xl font-semibold text-purple-800 mb-4 md:mb-6">Wer wir sind</h2>
               <p className="text-sm md:text-base text-gray-700">
-                Lumo GmbH<br />
-                Barmbeker Str. 33<br />
-                22303 Hamburg<br />
+                Ahmet Kalebas<br />
+                Kaskelstr. 53<br />
+                10317 Berlin<br />
                 Deutschland
               </p>
               
@@ -27,35 +27,14 @@ export default function Impressum() {
               <p className="text-sm md:text-base text-gray-700">
                 E-Mail: info@lumo.guru
               </p>
-
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mt-6 mb-2">Die offiziellen Sachen</h3>
-              <p className="text-sm md:text-base text-gray-700">
-                Handelsregister: Amtsgericht Hamburg<br />
-                Registernummer: HRB 123456
-              </p>
-
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mt-6 mb-2">Steuerkram</h3>
-              <p className="text-sm md:text-base text-gray-700">
-                Umsatzsteuer-Identifikationsnummer nach §27a UStG:<br />
-                DE123456789
-              </p>
             </section>
 
             <section className="mb-8 md:mb-12 bg-white/50 rounded-lg p-6 md:p-8">
-              <h2 className="text-xl md:text-2xl font-semibold text-purple-800 mb-4 md:mb-6">Unsere Crew</h2>
+              <h2 className="text-xl md:text-2xl font-semibold text-purple-800 mb-4 md:mb-6">Verantwortlich für den Inhalt</h2>
               <p className="text-sm md:text-base text-gray-700">
-                Lisa Schmidt (CEO)<br />
-                Jan Meyer (CTO)
-              </p>
-            </section>
-
-            <section className="mb-8 md:mb-12 bg-white/50 rounded-lg p-6 md:p-8">
-              <h2 className="text-xl md:text-2xl font-semibold text-purple-800 mb-4 md:mb-6">Wer hat's geschrieben?</h2>
-              <p className="text-sm md:text-base text-gray-700">
-                Lisa Schmidt<br />
-                Lumo GmbH<br />
-                Barmbeker Str. 33<br />
-                22303 Hamburg
+                Ahmet Kalebas<br />
+                Kaskelstr. 53<br />
+                10317 Berlin
               </p>
             </section>
 

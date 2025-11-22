@@ -24,7 +24,7 @@ const NutzungsbedingungenPage = () => (
           <h2 className="text-base font-semibold">1. Geltungsbereich</h2>
           <p>
             Diese Allgemeinen Geschäftsbedingungen (nachfolgend „AGB") gelten für alle Verträge zwischen
-            der Lumo App (betrieben von <span className="italic">Lumo GmbH, Barmbeker Str. 33, 22303 Hamburg</span> – nachfolgend „wir" oder
+            der Lumo App (betrieben von <span className="italic">Ahmet Kalebas, Kaskelstr. 53, 10317 Berlin</span> – nachfolgend „wir" oder
             „uns") und den Nutzerinnen und Nutzern unserer Software‐ as‐a‐Service‐Plattform (nachfolgend
             „Nutzer"). Abweichende Geschäftsbedingungen der Nutzer finden keine Anwendung, es sei denn,
             wir stimmen ihrer Geltung ausdrücklich schriftlich zu.
@@ -101,7 +101,7 @@ const NutzungsbedingungenPage = () => (
           <h2 className="text-base font-semibold">10. Schlussbestimmungen</h2>
           <p className="mb-8">
             Es gilt deutsches Recht unter Ausschluss des UN-Kaufrechts (CISG). Gerichtsstand für alle
-            Streitigkeiten aus diesem Vertrag ist Hamburg, sofern der Nutzer Kaufmann ist oder keinen
+            Streitigkeiten aus diesem Vertrag ist Berlin, sofern der Nutzer Kaufmann ist oder keinen
             allgemeinen Gerichtsstand in Deutschland hat.
           </p>
         </section>

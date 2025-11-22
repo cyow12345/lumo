@@ -70,8 +70,8 @@ export default function Home() {
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-xs text-gray-900 truncate">Lumo – Versteht euch einfach besser</h3>
-                <p className="text-[10px] text-gray-600 truncate">Kostenlos testen, dann 3,33 €/Monat für beide.</p>
+                <h3 className="font-semibold text-xs text-gray-900 truncate">Lumo: KI für Paare & Liebe</h3>
+                <p className="text-[10px] text-gray-600 truncate">Täglich mehr Nähe & Liebe</p>
               </div>
             </div>
             <button
@@ -156,11 +156,11 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-2 md:gap-12 items-center mb-20 md:mb-32">
               <div className="space-y-4 md:space-y-6 text-center md:text-left">
                 <h2 className="text-2xl md:text-[52px] font-bold text-[#2B237C] leading-tight">
-                  Versteht, was<br />
-                  dahinter steckt
+                  Übersetzt, was<br />
+                  gemeint ist
                 </h2>
                 <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-md mx-auto md:mx-0">
-                  Aus 'Du nie' wird 'Ich brauche'. Lumo hilft euch, die Wünsche hinter den Worten zu hören und macht aus Sprachlosigkeit wieder Verbindung.
+                  "Nie machst du..." wird zu "Ich brauche mehr von uns." Lumo zeigt euch, was hinter den Worten steckt – und macht aus Streit wieder Gespräch.
                 </p>
               </div>
               <div className="relative -mt-2 md:mt-0">

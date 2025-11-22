@@ -18,7 +18,7 @@ export default function Mission() {
               <div className="mb-12 md:mb-16">
                 <h2 className="text-xl md:text-2xl font-semibold text-purple-800 mb-4 md:mb-6">Unsere Vision</h2>
                 <p className="text-base md:text-lg text-gray-700">
-                  Hey! Schön, dass du da bist. Wir sind ein junges Team aus Hamburg, das sich einer Sache verschrieben hat: 
+                  Hey! Schön, dass du da bist. Wir sind ein junges Team aus Berlin, das sich einer Sache verschrieben hat: 
                   Menschen dabei zu helfen, glücklichere und erfülltere Beziehungen zu führen. Wir glauben fest daran, dass 
                   jede Beziehung es verdient hat zu wachsen und zu blühen - und genau dabei möchten wir helfen!
                 </p>
@@ -35,7 +35,7 @@ export default function Mission() {
                   <li className="flex flex-col bg-white/50 rounded-lg p-4 md:p-6">
                     <strong className="text-purple-800 mb-2">Innovation mit Herz</strong>
                     Klar nutzen wir modernste Technik - aber immer mit dem Fokus darauf, 
-                    was dir und deiner Beziehung wirklich hilft. Quasi Hamburger Herzlichkeit meets Silicon Valley! ✨
+                    was dir und deiner Beziehung wirklich hilft. Berliner Direktheit meets Silicon Valley! ✨
                   </li>
                   <li className="flex flex-col bg-white/50 rounded-lg p-4 md:p-6">
                     <strong className="text-purple-800 mb-2">Gemeinsam wachsen</strong>
@@ -50,19 +50,19 @@ export default function Mission() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                   <div className="bg-white p-5 md:p-7 rounded-lg shadow-sm">
                     <h3 className="text-lg md:text-xl font-semibold text-purple-700 mb-3 md:mb-4">Echt & Ehrlich</h3>
-                    <p className="text-sm md:text-base text-gray-600">Keine Masken, keine Spielchen - bei uns kriegst du das echte Hamburger Schnacken!</p>
+                    <p className="text-sm md:text-base text-gray-600">Keine Masken, keine Spielchen - bei uns kriegst du ehrliche, direkte Kommunikation!</p>
                   </div>
                   <div className="bg-white p-5 md:p-7 rounded-lg shadow-sm">
                     <h3 className="text-lg md:text-xl font-semibold text-purple-700 mb-3 md:mb-4">Vertrauenswürdig</h3>
-                    <p className="text-sm md:text-base text-gray-600">Deine Daten sind bei uns so sicher wie im Schließfach der Haspa.</p>
+                    <p className="text-sm md:text-base text-gray-600">Deine Daten sind bei uns absolut sicher - Datenschutz made in Berlin.</p>
                   </div>
                   <div className="bg-white p-5 md:p-7 rounded-lg shadow-sm">
                     <h3 className="text-lg md:text-xl font-semibold text-purple-700 mb-3 md:mb-4">Innovativ</h3>
-                    <p className="text-sm md:text-base text-gray-600">Frischer Wind für deine Beziehung - und der kommt nicht nur von der Elbe!</p>
+                    <p className="text-sm md:text-base text-gray-600">Frischer Wind für deine Beziehung - direkt aus der Startup-Hauptstadt!</p>
                   </div>
                   <div className="bg-white p-5 md:p-7 rounded-lg shadow-sm">
                     <h3 className="text-lg md:text-xl font-semibold text-purple-700 mb-3 md:mb-4">Gemeinsam stark</h3>
-                    <p className="text-sm md:text-base text-gray-600">Wie beim FC St. Pauli: Zusammen sind wir unschlagbar!</p>
+                    <p className="text-sm md:text-base text-gray-600">Zusammen sind wir unschlagbar - wie eine starke Community!</p>
                   </div>
                 </div>
               </div>

@@ -23,8 +23,8 @@ const DatenschutzPage = () => (
         <section className="space-y-4 text-sm leading-relaxed text-midnight">
           <h2 className="text-base font-semibold">1. Verantwortlicher</h2>
           <p>
-            Verantwortlicher im Sinne der Datenschutzgrundverordnung (DSGVO) ist die <span className="italic">Lumo GmbH, Barmbeker Str. 33,
-            22303 Hamburg</span>, E-Mail: privacy@lumo.guru.
+            Verantwortlicher im Sinne der Datenschutzgrundverordnung (DSGVO) ist <span className="italic">Ahmet Kalebas, Kaskelstr. 53,
+            10317 Berlin</span>, E-Mail: privacy@lumo.guru.
           </p>
 
           <h2 className="text-base font-semibold">2. Verarbeitung personenbezogener Daten</h2>
@@ -197,7 +197,7 @@ const DatenschutzPage = () => (
           <h2 className="text-base font-semibold">12. Beschwerderecht</h2>
           <p>
             Ihnen steht ein Beschwerderecht bei einer Aufsichtsbehörde zu – zuständig ist in der Regel der
-            Landesdatenschutzbeauftragte Ihres Wohnsitzes oder der Hamburgische Beauftragte für Datenschutz
+            Landesdatenschutzbeauftragte Ihres Wohnsitzes oder die Berliner Beauftragte für Datenschutz
             und Informationsfreiheit.
           </p>
 
